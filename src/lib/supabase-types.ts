@@ -179,13 +179,14 @@ export interface UserRole {
   created_at: string;
 }
 
-// Type pour le personnel disponible (combiné)
+// Type pour le personnel disponible (combiné) - inclut permanents, stagiaires et manœuvrants
 export interface PersonnelDisponible {
   id: string;
-  type: 'permanent' | 'stagiaire';
+  type: 'permanent' | 'stagiaire' | 'manoeuvrant';
   grade_code: string;
   grade_libelle: string;
   nom: string;
   prenom: string;
+  poste?: 'CA' | 'COND' | 'CE' | 'EQ'; // Uniquement pour les manœuvrants
   isAffected?: boolean;
 }

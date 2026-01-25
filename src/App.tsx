@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NouveauTicket from "./pages/NouveauTicket";
+import Historique from "./pages/Historique";
 import Stagiaires from "./pages/Stagiaires";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <NouveauTicket />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/historique"
+        element={
+          <ProtectedRoute>
+            <Historique />
           </ProtectedRoute>
         }
       />

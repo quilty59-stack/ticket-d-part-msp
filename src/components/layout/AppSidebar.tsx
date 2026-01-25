@@ -26,11 +26,13 @@ import {
   FileText,
   LogOut,
   Flame,
+  History,
 } from 'lucide-react';
 
 const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
   { title: 'Nouveau ticket', url: '/ticket/nouveau', icon: Plus },
+  { title: 'Historique', url: '/historique', icon: History },
   { title: 'Personnel temporaire', url: '/stagiaires', icon: Users },
 ];
 
