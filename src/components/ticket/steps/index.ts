@@ -1,3 +1,3 @@
 export { StepInfos } from './StepInfos';
-export { StepLocalisation } from './StepLocalisation';
+export { StepNature } from './StepNature';
 export { StepMoyens } from './StepMoyens';
