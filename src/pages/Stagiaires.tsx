@@ -108,12 +108,12 @@ export default function Stagiaires() {
   // Add manoeuvrant mutation
   const addManoeuvrant = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('manoeuvrants').insert({
+      const { error } = await supabase.from('manoeuvrants' as never).insert({
         grade_id: manoGradeId || null,
         nom: manoNom.toUpperCase(),
         prenom: manoPrenom,
         poste: manoPoste,
-      });
+      } as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -139,7 +139,7 @@ export default function Stagiaires() {
   // Delete manoeuvrant mutation
   const deleteManoeuvrant = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('manoeuvrants').delete().eq('id', id);
+      const { error } = await supabase.from('manoeuvrants' as never).delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
