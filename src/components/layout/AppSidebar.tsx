@@ -31,7 +31,7 @@ import {
 const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
   { title: 'Nouveau ticket', url: '/ticket/nouveau', icon: Plus },
-  { title: 'Stagiaires', url: '/stagiaires', icon: Users },
+  { title: 'Personnel temporaire', url: '/stagiaires', icon: Users },
 ];
 
 const adminNavItems = [

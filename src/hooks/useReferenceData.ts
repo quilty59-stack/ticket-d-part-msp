@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { 
   Grade, Centre, Categorie, Commune, Nature, 
-  TypeLieu, TypeVoie, Origine, Vehicule, Personnel, Stagiaire 
+  TypeLieu, TypeVoie, Origine, Vehicule, Personnel, Stagiaire, Manoeuvrant 
 } from '@/lib/supabase-types';
 
 export function useGrades() {
@@ -165,14 +165,26 @@ export function useStagiaires() {
   return useQuery({
     queryKey: ['stagiaires'],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('stagiaires')
         .select('*, grades(*)')
-        .eq('date_ajout', today)
         .order('nom');
       if (error) throw error;
       return data as Stagiaire[];
+    },
+  });
+}
+
+export function useManoeuvrants() {
+  return useQuery({
+    queryKey: ['manoeuvrants'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('manoeuvrants')
+        .select('*, grades(*)')
+        .order('nom');
+      if (error) throw error;
+      return data as Manoeuvrant[];
     },
   });
 }
