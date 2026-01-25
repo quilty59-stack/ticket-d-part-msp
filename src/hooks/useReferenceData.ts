@@ -180,11 +180,11 @@ export function useManoeuvrants() {
     queryKey: ['manoeuvrants'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('manoeuvrants')
+        .from('manoeuvrants' as never)
         .select('*, grades(*)')
         .order('nom');
       if (error) throw error;
-      return data as Manoeuvrant[];
+      return data as unknown as Manoeuvrant[];
     },
   });
 }
