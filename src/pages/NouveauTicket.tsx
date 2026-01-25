@@ -20,7 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { StepInfos, StepLocalisation, StepMoyens } from '@/components/ticket/steps';
+import { StepInfos, StepNature, StepMoyens } from '@/components/ticket/steps';
 import {
   Flame,
   Save,
@@ -35,8 +35,8 @@ import {
 import type { Vehicule, PersonnelDisponible, MoyenAffecte } from '@/lib/supabase-types';
 
 const STEPS = [
-  { id: 'infos', label: 'Informations', icon: FileText },
-  { id: 'localisation', label: 'Localisation & Nature', icon: Flame },
+  { id: 'infos', label: 'Infos & Localisation', icon: FileText },
+  { id: 'nature', label: 'Nature', icon: Flame },
   { id: 'moyens', label: 'Moyens & Équipages', icon: User },
 ] as const;
 
@@ -327,11 +327,6 @@ export default function NouveauTicket() {
                 origineId={origineId}
                 setOrigineId={setOrigineId}
                 origines={origines}
-              />
-            </TabsContent>
-
-            <TabsContent value="localisation" className="mt-6">
-              <StepLocalisation
                 communeId={communeId}
                 setCommuneId={setCommuneId}
                 communes={communes}
@@ -347,6 +342,11 @@ export default function NouveauTicket() {
                 setNomVoie={setNomVoie}
                 complementAdresse={complementAdresse}
                 setComplementAdresse={setComplementAdresse}
+              />
+            </TabsContent>
+
+            <TabsContent value="nature" className="mt-6">
+              <StepNature
                 categorieId={categorieId}
                 setCategorieId={setCategorieId}
                 categories={categories}
