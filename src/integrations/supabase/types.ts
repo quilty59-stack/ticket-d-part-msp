@@ -128,6 +128,41 @@ export type Database = {
         }
         Relationships: []
       }
+      manoeuvrants: {
+        Row: {
+          created_at: string
+          grade_id: string | null
+          id: string
+          nom: string
+          poste: string
+          prenom: string
+        }
+        Insert: {
+          created_at?: string
+          grade_id?: string | null
+          id?: string
+          nom: string
+          poste: string
+          prenom: string
+        }
+        Update: {
+          created_at?: string
+          grade_id?: string | null
+          id?: string
+          nom?: string
+          poste?: string
+          prenom?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manoeuvrants_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       natures: {
         Row: {
           actif: boolean | null

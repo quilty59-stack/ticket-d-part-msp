@@ -111,6 +111,16 @@ export interface Stagiaire {
   grades?: Grade;
 }
 
+export interface Manoeuvrant {
+  id: string;
+  grade_id: string | null;
+  nom: string;
+  prenom: string;
+  poste: 'CA' | 'COND' | 'CE' | 'EQ';
+  created_at: string;
+  grades?: Grade;
+}
+
 export interface MoyenAffecte {
   vehicule_id: string;
   vehicule_code: string;
