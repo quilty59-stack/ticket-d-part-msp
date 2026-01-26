@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -31,16 +31,22 @@ import {
   Wrench,
   ChevronRight,
   ChevronLeft,
+  AlertCircle,
 } from 'lucide-react';
-import type { Vehicule, PersonnelDisponible, MoyenAffecte } from '@/lib/supabase-types';
+import type { Vehicule, PersonnelDisponible, MoyenAffecte, Ticket } from '@/lib/supabase-types';
 
-const STEPS = [
+const STEPS_NORMAL = [
   { id: 'infos', label: 'Infos & Localisation', icon: FileText },
   { id: 'nature', label: 'Nature', icon: Flame },
   { id: 'moyens', label: 'Moyens & Équipages', icon: User },
 ] as const;
 
-type StepId = (typeof STEPS)[number]['id'];
+const STEPS_RENFORT = [
+  { id: 'infos', label: 'Intervention à renforcer', icon: AlertCircle },
+  { id: 'moyens', label: 'Moyens & Équipages', icon: User },
+] as const;
+
+type StepId = 'infos' | 'nature' | 'moyens';
 
 export default function NouveauTicket() {
   const navigate = useNavigate();
@@ -75,6 +81,9 @@ export default function NouveauTicket() {
   const [renfort, setRenfort] = useState('');
   const [message, setMessage] = useState('');
 
+  // Mode renfort
+  const [selectedRenfortTicket, setSelectedRenfortTicket] = useState<Ticket | null>(null);
+
   // Moyens state
   const [selectedVehicules, setSelectedVehicules] = useState<Vehicule[]>([]);
   const [affectations, setAffectations] = useState<
@@ -96,6 +105,22 @@ export default function NouveauTicket() {
   const { data: personnel = [] } = usePersonnel();
   const { data: stagiaires = [] } = useStagiaires();
   const { data: manoeuvrants = [] } = useManoeuvrants();
+
+  // Check if mode renfort
+  const isRenfortMode = useMemo(() => {
+    const selectedOrigine = origines.find((o) => o.id === origineId);
+    return selectedOrigine?.libelle?.toLowerCase().includes('renfort') || false;
+  }, [origineId, origines]);
+
+  // Determine steps based on mode
+  const STEPS = isRenfortMode ? STEPS_RENFORT : STEPS_NORMAL;
+
+  // Reset renfort ticket when switching out of renfort mode
+  useEffect(() => {
+    if (!isRenfortMode) {
+      setSelectedRenfortTicket(null);
+    }
+  }, [isRenfortMode]);
 
   // Combine personnel, stagiaires and manoeuvrants
   const personnelDisponible = useMemo<PersonnelDisponible[]>(() => {
@@ -214,44 +239,48 @@ export default function NouveauTicket() {
 
   const goNext = () => {
     if (canGoNext) {
-      setCurrentStep(STEPS[currentStepIndex + 1].id);
+      setCurrentStep(STEPS[currentStepIndex + 1].id as StepId);
     }
   };
 
   const goPrev = () => {
     if (canGoPrev) {
-      setCurrentStep(STEPS[currentStepIndex - 1].id);
+      setCurrentStep(STEPS[currentStepIndex - 1].id as StepId);
     }
   };
 
-  // Create ticket mutation
+  // Build moyens array
+  const buildMoyens = (): MoyenAffecte[] => {
+    return selectedVehicules.map((v) => {
+      const vehiculeAffectations = affectations[v.id] || {};
+      const postes: Record<string, string | string[]> = {};
+
+      Object.entries(vehiculeAffectations).forEach(([posteKey, person]) => {
+        if (person) {
+          const [poste] = posteKey.split('-');
+          const personRef = `${person.type}:${person.id}`;
+
+          if (v.postes[poste] > 1) {
+            if (!postes[poste]) postes[poste] = [];
+            (postes[poste] as string[]).push(personRef);
+          } else {
+            postes[poste] = personRef;
+          }
+        }
+      });
+
+      return {
+        vehicule_id: v.id,
+        vehicule_code: v.code,
+        postes,
+      };
+    });
+  };
+
+  // Create ticket mutation (new ticket)
   const createTicket = useMutation({
     mutationFn: async (etat: 'brouillon' | 'valide') => {
-      // Build moyens array
-      const moyens: MoyenAffecte[] = selectedVehicules.map((v) => {
-        const vehiculeAffectations = affectations[v.id] || {};
-        const postes: Record<string, string | string[]> = {};
-
-        Object.entries(vehiculeAffectations).forEach(([posteKey, person]) => {
-          if (person) {
-            const [poste] = posteKey.split('-');
-            const personRef = `${person.type}:${person.id}`;
-
-            if (v.postes[poste] > 1) {
-              if (!postes[poste]) postes[poste] = [];
-              (postes[poste] as string[]).push(personRef);
-            } else {
-              postes[poste] = personRef;
-            }
-          }
-        });
-
-        return {
-          vehicule_id: v.id,
-          vehicule_code: v.code,
-          postes,
-        };
-      });
+      const moyens = buildMoyens();
 
       const insertData: Record<string, unknown> = {
         date_intervention: dateIntervention,
@@ -304,19 +333,73 @@ export default function NouveauTicket() {
     },
   });
 
+  // Add renfort to existing ticket mutation
+  const addRenfortToTicket = useMutation({
+    mutationFn: async () => {
+      if (!selectedRenfortTicket) throw new Error('Aucune intervention sélectionnée');
+
+      const newMoyens = buildMoyens();
+      const existingMoyens = (selectedRenfortTicket.moyens || []) as MoyenAffecte[];
+      const combinedMoyens = [...existingMoyens, ...newMoyens];
+
+      const { data, error } = await supabase
+        .from('tickets')
+        .update({
+          moyens: combinedMoyens as unknown as never,
+          renfort: selectedRenfortTicket.renfort
+            ? `${selectedRenfortTicket.renfort}, ${newMoyens.map((m) => m.vehicule_code).join(', ')}`
+            : newMoyens.map((m) => m.vehicule_code).join(', '),
+        })
+        .eq('id', selectedRenfortTicket.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['tickets-en-cours'] });
+      toast({
+        title: 'Renfort ajouté',
+        description: `Renfort ajouté au ticket ${data.num_inter}`,
+      });
+      navigate('/historique');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const isLastStep = currentStep === 'moyens';
+  const isPending = createTicket.isPending || addRenfortToTicket.isPending;
+
   return (
     <AppLayout>
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Flame className="w-6 h-6 text-primary" />
-              Nouveau Ticket de Départ
+              {isRenfortMode ? (
+                <>
+                  <AlertCircle className="w-6 h-6 text-orange-500" />
+                  Demande de Renfort
+                </>
+              ) : (
+                <>
+                  <Flame className="w-6 h-6 text-primary" />
+                  Nouveau Ticket de Départ
+                </>
+              )}
             </h1>
           </div>
 
           <Tabs value={currentStep} onValueChange={(v) => setCurrentStep(v as StepId)}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className={`grid w-full ${isRenfortMode ? 'grid-cols-2' : 'grid-cols-3'}`}>
               {STEPS.map((step, index) => (
                 <TabsTrigger
                   key={step.id}
@@ -338,6 +421,9 @@ export default function NouveauTicket() {
                 origineId={origineId}
                 setOrigineId={setOrigineId}
                 origines={origines}
+                isRenfortMode={isRenfortMode}
+                selectedRenfortTicket={selectedRenfortTicket}
+                onSelectRenfortTicket={setSelectedRenfortTicket}
                 communeId={communeId}
                 setCommuneId={setCommuneId}
                 communes={communes}
@@ -356,36 +442,38 @@ export default function NouveauTicket() {
               />
             </TabsContent>
 
-            <TabsContent value="nature" className="mt-6">
-              <StepNature
-                categorieId={categorieId}
-                setCategorieId={setCategorieId}
-                categories={categories}
-                natureId={natureId}
-                setNatureId={setNatureId}
-                natures={natures}
-                complementNature={complementNature}
-                setComplementNature={setComplementNature}
-                appelant={appelant}
-                setAppelant={setAppelant}
-                victime={victime}
-                setVictime={setVictime}
-                rensCompl={rensCompl}
-                setRensCompl={setRensCompl}
-                coordonnees={coordonnees}
-                setCoordonnees={setCoordonnees}
-                ptsEauIndispo={ptsEauIndispo}
-                setPtsEauIndispo={setPtsEauIndispo}
-                transit={transit}
-                setTransit={setTransit}
-                talkgroup={talkgroup}
-                setTalkgroup={setTalkgroup}
-                renfort={renfort}
-                setRenfort={setRenfort}
-                message={message}
-                setMessage={setMessage}
-              />
-            </TabsContent>
+            {!isRenfortMode && (
+              <TabsContent value="nature" className="mt-6">
+                <StepNature
+                  categorieId={categorieId}
+                  setCategorieId={setCategorieId}
+                  categories={categories}
+                  natureId={natureId}
+                  setNatureId={setNatureId}
+                  natures={natures}
+                  complementNature={complementNature}
+                  setComplementNature={setComplementNature}
+                  appelant={appelant}
+                  setAppelant={setAppelant}
+                  victime={victime}
+                  setVictime={setVictime}
+                  rensCompl={rensCompl}
+                  setRensCompl={setRensCompl}
+                  coordonnees={coordonnees}
+                  setCoordonnees={setCoordonnees}
+                  ptsEauIndispo={ptsEauIndispo}
+                  setPtsEauIndispo={setPtsEauIndispo}
+                  transit={transit}
+                  setTransit={setTransit}
+                  talkgroup={talkgroup}
+                  setTalkgroup={setTalkgroup}
+                  renfort={renfort}
+                  setRenfort={setRenfort}
+                  message={message}
+                  setMessage={setMessage}
+                />
+              </TabsContent>
+            )}
 
             <TabsContent value="moyens" className="mt-6">
               <StepMoyens
@@ -415,31 +503,47 @@ export default function NouveauTicket() {
             </Button>
 
             <div className="flex gap-2">
-              {currentStep === 'moyens' && (
+              {isLastStep && (
                 <>
-                  <Button
-                    variant="outline"
-                    onClick={() => createTicket.mutate('brouillon')}
-                    disabled={createTicket.isPending}
-                  >
-                    {createTicket.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    Enregistrer brouillon
-                  </Button>
-                  <Button
-                    onClick={() => createTicket.mutate('valide')}
-                    disabled={createTicket.isPending}
-                  >
-                    {createTicket.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <FileText className="w-4 h-4 mr-2" />
-                    )}
-                    Valider et générer PDF
-                  </Button>
+                  {isRenfortMode ? (
+                    <Button
+                      onClick={() => addRenfortToTicket.mutate()}
+                      disabled={isPending || !selectedRenfortTicket || selectedVehicules.length === 0}
+                    >
+                      {isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 mr-2" />
+                      )}
+                      Ajouter le renfort
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => createTicket.mutate('brouillon')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Enregistrer brouillon
+                      </Button>
+                      <Button
+                        onClick={() => createTicket.mutate('valide')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="w-4 h-4 mr-2" />
+                        )}
+                        Valider et générer PDF
+                      </Button>
+                    </>
+                  )}
                 </>
               )}
             </div>
