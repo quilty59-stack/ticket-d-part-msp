@@ -110,26 +110,19 @@ export default function Historique() {
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Ticket de Départ</title>
+            <title>Ticket de Départ - ${printData?.ticket?.num_inter || ''}</title>
             <style>
-              @page { size: A4; margin: 10mm; }
+              @page { size: A4; margin: 15mm; }
               body { 
                 font-family: Arial, sans-serif; 
+                font-size: 12px;
                 margin: 0; 
-                padding: 20px;
+                padding: 0;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
               }
-              table { width: 100%; border-collapse: collapse; }
-              th, td { border: 1px solid #000; padding: 4px 8px; text-align: left; }
-              th { background: #f0f0f0; }
-              .header { text-align: center; margin-bottom: 20px; }
-              .section { margin-bottom: 15px; }
-              .section-title { font-weight: bold; background: #e0e0e0; padding: 5px; }
-              .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-              .field { margin-bottom: 5px; }
-              .field-label { font-weight: bold; font-size: 12px; color: #666; }
-              .field-value { font-size: 14px; }
+              table { border-collapse: collapse; }
+              td { padding: 2px 0; vertical-align: top; }
               @media print {
                 body { padding: 0; }
               }
