@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { usePersonnelResolver } from '@/hooks/usePersonnelResolver';
@@ -9,14 +10,14 @@ interface TicketPrintViewProps {
   showAllVehicles?: boolean;
 }
 
-export function TicketPrintView({
-  ticket,
-  vehiculeIndex,
-  showAllVehicles = false,
-}: TicketPrintViewProps) {
-  const { formatPostePersonnel } = usePersonnelResolver();
-  const moyens = (ticket.moyens || []) as MoyenAffecte[];
-  const currentVehicule = vehiculeIndex >= 0 ? moyens[vehiculeIndex] : null;
+export const TicketPrintView = forwardRef<HTMLDivElement, TicketPrintViewProps>(
+  function TicketPrintView(
+    { ticket, vehiculeIndex, showAllVehicles = false },
+    ref
+  ) {
+    const { formatPostePersonnel } = usePersonnelResolver();
+    const moyens = (ticket.moyens || []) as MoyenAffecte[];
+    const currentVehicule = vehiculeIndex >= 0 ? moyens[vehiculeIndex] : null;
 
   // Build address
   const addressParts = [
@@ -107,6 +108,7 @@ export function TicketPrintView({
 
   return (
     <div
+      ref={ref}
       style={{
         fontFamily: 'Arial, sans-serif',
         fontSize: '12px',
@@ -267,4 +269,4 @@ export function TicketPrintView({
       </div>
     </div>
   );
-}
+});
