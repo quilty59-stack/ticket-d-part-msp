@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CategoryBadge } from '@/components/ticket/CategoryBadge';
-import { Flame, Phone } from 'lucide-react';
+import { Flame, Phone, Info, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Categorie, Nature } from '@/lib/supabase-types';
 
@@ -31,6 +31,19 @@ interface StepNatureProps {
   setVictime: (value: string) => void;
   rensCompl: string;
   setRensCompl: (value: string) => void;
+  // Champs additionnels
+  coordonnees: string;
+  setCoordonnees: (value: string) => void;
+  ptsEauIndispo: string;
+  setPtsEauIndispo: (value: string) => void;
+  transit: string;
+  setTransit: (value: string) => void;
+  talkgroup: string;
+  setTalkgroup: (value: string) => void;
+  renfort: string;
+  setRenfort: (value: string) => void;
+  message: string;
+  setMessage: (value: string) => void;
 }
 
 export function StepNature({
@@ -48,6 +61,18 @@ export function StepNature({
   setVictime,
   rensCompl,
   setRensCompl,
+  coordonnees,
+  setCoordonnees,
+  ptsEauIndispo,
+  setPtsEauIndispo,
+  transit,
+  setTransit,
+  talkgroup,
+  setTalkgroup,
+  renfort,
+  setRenfort,
+  message,
+  setMessage,
 }: StepNatureProps) {
   return (
     <div className="space-y-6">
@@ -148,6 +173,69 @@ export function StepNature({
               value={rensCompl}
               onChange={(e) => setRensCompl(e.target.value)}
               rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Coordonnées (X, Y)</Label>
+            <Input
+              placeholder="X: 811440   Y: 2181104"
+              value={coordonnees}
+              onChange={(e) => setCoordonnees(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Points d'eau indisponibles</Label>
+            <Input
+              placeholder="PI rue de la gare..."
+              value={ptsEauIndispo}
+              onChange={(e) => setPtsEauIndispo(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Moyens & Communication */}
+      <Card>
+        <CardHeader className="py-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Radio className="w-5 h-5" />
+            Communication & Renforts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Transit</Label>
+              <Input
+                placeholder="Canal transit..."
+                value={transit}
+                onChange={(e) => setTransit(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Talkgroup</Label>
+              <Input
+                placeholder="71-SAP..."
+                value={talkgroup}
+                onChange={(e) => setTalkgroup(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Renfort(s)</Label>
+            <Input
+              placeholder="VSAV LU2, SMUR..."
+              value={renfort}
+              onChange={(e) => setRenfort(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Message</Label>
+            <Textarea
+              placeholder="Message à transmettre..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={2}
             />
           </div>
         </CardContent>

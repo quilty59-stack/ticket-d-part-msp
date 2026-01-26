@@ -68,6 +68,12 @@ export default function NouveauTicket() {
   const [appelant, setAppelant] = useState('');
   const [victime, setVictime] = useState('');
   const [rensCompl, setRensCompl] = useState('');
+  const [coordonnees, setCoordonnees] = useState('');
+  const [ptsEauIndispo, setPtsEauIndispo] = useState('');
+  const [transit, setTransit] = useState('');
+  const [talkgroup, setTalkgroup] = useState('');
+  const [renfort, setRenfort] = useState('');
+  const [message, setMessage] = useState('');
 
   // Moyens state
   const [selectedVehicules, setSelectedVehicules] = useState<Vehicule[]>([]);
@@ -262,6 +268,11 @@ export default function NouveauTicket() {
         appelant: appelant || null,
         victime: victime || null,
         rens_compl: rensCompl || null,
+        coordonnees: coordonnees || null,
+        pts_eau_indispo: ptsEauIndispo || null,
+        transit: transit || null,
+        talkgroup: talkgroup || null,
+        renfort: renfort || null,
         moyens: moyens,
         etat,
         created_by: user?.id,
@@ -361,6 +372,18 @@ export default function NouveauTicket() {
                 setVictime={setVictime}
                 rensCompl={rensCompl}
                 setRensCompl={setRensCompl}
+                coordonnees={coordonnees}
+                setCoordonnees={setCoordonnees}
+                ptsEauIndispo={ptsEauIndispo}
+                setPtsEauIndispo={setPtsEauIndispo}
+                transit={transit}
+                setTransit={setTransit}
+                talkgroup={talkgroup}
+                setTalkgroup={setTalkgroup}
+                renfort={renfort}
+                setRenfort={setRenfort}
+                message={message}
+                setMessage={setMessage}
               />
             </TabsContent>
 
