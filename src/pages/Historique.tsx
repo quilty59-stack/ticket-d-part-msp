@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -16,14 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { CategoryBadge } from '@/components/ticket/CategoryBadge';
-import { TicketPrintView } from '@/components/ticket/TicketPrintView';
+import { TicketIntervention } from '@/components/ticket/TicketIntervention';
 import {
   History,
   Plus,
@@ -33,17 +27,11 @@ import {
   Loader2,
   Truck,
 } from 'lucide-react';
-import type { Ticket, MoyenAffecte, PersonnelDisponible } from '@/lib/supabase-types';
+import type { Ticket, MoyenAffecte } from '@/lib/supabase-types';
 
 export default function Historique() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
-  const [printData, setPrintData] = useState<{
-    ticket: Ticket;
-    vehiculeIndex: number;
-    totalVehicules: number;
-  } | null>(null);
-  const printRef = useRef<HTMLDivElement>(null);
+  const [printTicket, setPrintTicket] = useState<Ticket | null>(null);
 
   // Fetch tickets
   const { data: tickets = [], isLoading } = useQuery({
@@ -67,81 +55,9 @@ export default function Historique() {
     },
   });
 
-  // Print handler - creates one print per CA (vehicle)
+  // Print handler
   const handlePrint = (ticket: Ticket) => {
-    const moyens = (ticket.moyens || []) as MoyenAffecte[];
-    const totalVehicules = moyens.length;
-
-    if (totalVehicules === 0) {
-      // No vehicles, print empty ticket
-      setPrintData({ ticket, vehiculeIndex: -1, totalVehicules: 0 });
-      setPrintDialogOpen(true);
-      return;
-    }
-
-    // For multiple vehicles, we'll print sequentially
-    setPrintData({ ticket, vehiculeIndex: 0, totalVehicules });
-    setPrintDialogOpen(true);
-  };
-
-  const handlePrintNext = () => {
-    if (!printData) return;
-
-    const { ticket, vehiculeIndex, totalVehicules } = printData;
-    
-    if (vehiculeIndex < totalVehicules - 1) {
-      setPrintData({
-        ticket,
-        vehiculeIndex: vehiculeIndex + 1,
-        totalVehicules,
-      });
-    } else {
-      setPrintDialogOpen(false);
-      setPrintData(null);
-    }
-  };
-
-  const triggerPrint = () => {
-    if (printRef.current) {
-      const printContent = printRef.current.innerHTML;
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Ticket de Départ - ${printData?.ticket?.num_inter || ''}</title>
-            <style>
-              @page { size: A4; margin: 15mm; }
-              body { 
-                font-family: Arial, sans-serif; 
-                font-size: 12px;
-                margin: 0; 
-                padding: 0;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              table { border-collapse: collapse; }
-              td { padding: 2px 0; vertical-align: top; }
-              @media print {
-                body { padding: 0; }
-              }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => {
-          printWindow.print();
-          printWindow.close();
-          handlePrintNext();
-        }, 250);
-      }
-    }
+    setPrintTicket(ticket);
   };
 
   return (
@@ -256,67 +172,19 @@ export default function Historique() {
         </Card>
       </div>
 
-      {/* View Dialog */}
-      <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Ticket {selectedTicket?.num_inter}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedTicket && (
-            <TicketPrintView
-              ticket={selectedTicket}
-              vehiculeIndex={-1}
-              showAllVehicles
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* View Dialog - use TicketIntervention for viewing */}
+      <TicketIntervention
+        ticket={selectedTicket}
+        open={!!selectedTicket}
+        onOpenChange={(open) => !open && setSelectedTicket(null)}
+      />
 
       {/* Print Dialog */}
-      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Printer className="w-5 h-5" />
-              Impression du Ticket
-              {printData && printData.totalVehicules > 1 && (
-                <Badge variant="outline" className="ml-2">
-                  Véhicule {printData.vehiculeIndex + 1} / {printData.totalVehicules}
-                </Badge>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {printData && (
-            <>
-              <div ref={printRef} className="border rounded-lg p-4 bg-white">
-                <TicketPrintView
-                  ticket={printData.ticket}
-                  vehiculeIndex={printData.vehiculeIndex}
-                  showAllVehicles={printData.totalVehicules === 0}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => setPrintDialogOpen(false)}>
-                  Annuler
-                </Button>
-                <Button onClick={triggerPrint}>
-                  <Printer className="w-4 h-4 mr-2" />
-                  Imprimer
-                  {printData.totalVehicules > 1 && (
-                    <span className="ml-1">
-                      ({printData.vehiculeIndex + 1}/{printData.totalVehicules})
-                    </span>
-                  )}
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <TicketIntervention
+        ticket={printTicket}
+        open={!!printTicket}
+        onOpenChange={(open) => !open && setPrintTicket(null)}
+      />
     </AppLayout>
   );
 }
