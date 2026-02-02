@@ -357,6 +357,7 @@ export type Database = {
           pts_eau_indispo: string | null
           renfort: string | null
           rens_compl: string | null
+          site_id: string | null
           talkgroup: string | null
           transit: string | null
           type_lieu_id: string | null
@@ -385,6 +386,7 @@ export type Database = {
           pts_eau_indispo?: string | null
           renfort?: string | null
           rens_compl?: string | null
+          site_id?: string | null
           talkgroup?: string | null
           transit?: string | null
           type_lieu_id?: string | null
@@ -413,6 +415,7 @@ export type Database = {
           pts_eau_indispo?: string | null
           renfort?: string | null
           rens_compl?: string | null
+          site_id?: string | null
           talkgroup?: string | null
           transit?: string | null
           type_lieu_id?: string | null
