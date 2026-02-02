@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Building2, MapPin, Phone, User, Mail, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Building2, MapPin, AlertTriangle } from 'lucide-react';
 import { useSitesConventionnes } from '@/hooks/useSitesConventionnes';
 import { useState } from 'react';
 
@@ -71,14 +71,7 @@ export default function Sites() {
             {filteredSites.map((site) => (
               <Card key={site.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-start justify-between gap-2">
-                    <span className="line-clamp-2">{site.name}</span>
-                    {site.site_type && (
-                      <Badge variant="secondary" className="shrink-0 uppercase text-xs">
-                        {site.site_type}
-                      </Badge>
-                    )}
-                  </CardTitle>
+                  <CardTitle className="text-lg line-clamp-2">{site.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {/* Adresse */}
@@ -91,30 +84,6 @@ export default function Sites() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Contact */}
-                  {site.contact_name && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{site.contact_name}</span>
-                    </div>
-                  )}
-                  {site.contact_phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
-                      <a href={`tel:${site.contact_phone}`} className="hover:underline">
-                        {site.contact_phone}
-                      </a>
-                    </div>
-                  )}
-                  {site.contact_email && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <a href={`mailto:${site.contact_email}`} className="hover:underline truncate">
-                        {site.contact_email}
-                      </a>
-                    </div>
-                  )}
 
                   {/* Notes */}
                   {site.notes && (
