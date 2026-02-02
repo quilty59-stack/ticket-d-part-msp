@@ -27,7 +27,9 @@ import {
 import { FileText, MapPin, Check, ChevronsUpDown, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RenfortTicketSelector } from '@/components/ticket/RenfortTicketSelector';
+import { SiteMSPSelector } from '@/components/ticket/SiteMSPSelector';
 import type { Origine, Commune, TypeLieu, TypeVoie, Ticket } from '@/lib/supabase-types';
+import type { SiteConventionne } from '@/hooks/useSitesConventionnes';
 
 interface StepInfosProps {
   // Infos intervention
@@ -40,6 +42,9 @@ interface StepInfosProps {
   isRenfortMode: boolean;
   selectedRenfortTicket: Ticket | null;
   onSelectRenfortTicket: (ticket: Ticket | null) => void;
+  // Site MSP
+  selectedSiteId: string | null;
+  onSelectSite: (site: SiteConventionne | null) => void;
   // Localisation
   communeId: string;
   setCommuneId: (value: string) => void;
@@ -67,6 +72,8 @@ export function StepInfos({
   isRenfortMode,
   selectedRenfortTicket,
   onSelectRenfortTicket,
+  selectedSiteId,
+  onSelectSite,
   communeId,
   setCommuneId,
   communes,
@@ -134,6 +141,21 @@ export function StepInfos({
           )}
         </CardContent>
       </Card>
+
+      {/* Site MSP Selector */}
+      {!isRenfortMode && (
+        <Card>
+          <CardHeader className="py-4">
+            <CardTitle className="text-lg">Site MSP conventionné</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SiteMSPSelector
+              selectedSiteId={selectedSiteId}
+              onSelectSite={onSelectSite}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Mode Renfort : Sélection du ticket existant */}
       {isRenfortMode ? (
