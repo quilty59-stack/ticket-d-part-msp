@@ -27,12 +27,14 @@ import {
   LogOut,
   Flame,
   History,
+  Building2,
 } from 'lucide-react';
 
 const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
   { title: 'Nouveau ticket', url: '/ticket/nouveau', icon: Plus },
   { title: 'Historique', url: '/historique', icon: History },
+  { title: 'Sites MSP', url: '/sites', icon: Building2 },
   { title: 'Personnel temporaire', url: '/stagiaires', icon: Users },
 ];
 
