@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NouveauTicket from "./pages/NouveauTicket";
 import Historique from "./pages/Historique";
 import Stagiaires from "./pages/Stagiaires";
+import Sites from "./pages/Sites";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Stagiaires />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sites"
+        element={
+          <ProtectedRoute>
+            <Sites />
           </ProtectedRoute>
         }
       />
