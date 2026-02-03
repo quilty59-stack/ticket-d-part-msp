@@ -91,7 +91,7 @@ export function StepInfos({
   const [communeOpen, setCommuneOpen] = useState(false);
   const selectedCommune = communes.find((c) => c.id === communeId);
 
-  // Auto-fill location when site is selected
+  // Auto-fill location when site is selected or clear when deselected
   useEffect(() => {
     if (selectedSite) {
       // Find commune by name
@@ -102,15 +102,16 @@ export function StepInfos({
         setCommuneId(matchingCommune.id);
       }
 
-      // Auto-fill address
-      if (selectedSite.adresse) {
-        setNomVoie(selectedSite.adresse);
-      }
+      // Auto-fill address - always update, even to empty
+      setNomVoie(selectedSite.adresse || '');
 
-      // Auto-fill complement
-      if (selectedSite.complement) {
-        setComplementAdresse(selectedSite.complement);
-      }
+      // Auto-fill complement - always update, even to empty
+      setComplementAdresse(selectedSite.complement || '');
+    } else {
+      // When site is deselected, clear the auto-filled fields
+      setCommuneId('');
+      setNomVoie('');
+      setComplementAdresse('');
     }
   }, [selectedSite, communes, setCommuneId, setNomVoie, setComplementAdresse]);
 
