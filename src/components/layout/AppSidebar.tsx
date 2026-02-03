@@ -61,11 +61,11 @@ export function AppSidebar() {
           <img 
             src={logoCfd71} 
             alt="CFD71" 
-            className="w-10 h-10 rounded-lg object-contain flex-shrink-0"
+            className={collapsed ? "w-10 h-10 object-contain flex-shrink-0" : "w-20 h-20 object-contain flex-shrink-0"}
           />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-bold text-sidebar-foreground">CFD71</span>
+              <span className="font-bold text-lg text-sidebar-foreground">CFD71</span>
               <span className="text-xs text-sidebar-foreground/70">Tickets de départ</span>
             </div>
           )}
