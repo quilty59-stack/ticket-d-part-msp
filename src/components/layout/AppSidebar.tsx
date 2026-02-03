@@ -25,11 +25,11 @@ import {
   MapPin,
   FileText,
   LogOut,
-  Flame,
   History,
   Building2,
   MapPinned,
 } from 'lucide-react';
+import logoCfd71 from '@/assets/logo-cfd71.png';
 
 const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
@@ -58,12 +58,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center flex-shrink-0">
-            <Flame className="w-6 h-6 text-sidebar-primary-foreground" />
-          </div>
+          <img 
+            src={logoCfd71} 
+            alt="CFD71" 
+            className="w-10 h-10 rounded-lg object-contain flex-shrink-0"
+          />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-bold text-sidebar-foreground">SDIS 71</span>
+              <span className="font-bold text-sidebar-foreground">CFD71</span>
               <span className="text-xs text-sidebar-foreground/70">Tickets de départ</span>
             </div>
           )}
