@@ -91,6 +91,45 @@ export function StepInfos({
   const [communeOpen, setCommuneOpen] = useState(false);
   const selectedCommune = communes.find((c) => c.id === communeId);
 
+  // Parse address to extract: numéro, type de voie, nom de voie
+  const parseAddress = (address: string, typesVoiesRef: TypeVoie[]) => {
+    if (!address) return { numVoie: '', typeVoieId: '', nomVoie: '' };
+
+    let remaining = address.trim();
+    let extractedNum = '';
+    let extractedTypeVoieId = '';
+    let extractedNomVoie = '';
+
+    // Extract leading number (e.g., "389, " or "389 " or "12bis ")
+    const numMatch = remaining.match(/^(\d+[a-zA-Z]?)\s*[,\s]\s*/);
+    if (numMatch) {
+      extractedNum = numMatch[1];
+      remaining = remaining.slice(numMatch[0].length).trim();
+    }
+
+    // Try to match a type de voie at the beginning
+    const typesVoiesSorted = [...typesVoiesRef].sort(
+      (a, b) => b.libelle.length - a.libelle.length
+    ); // Sort by length desc to match longest first
+
+    for (const tv of typesVoiesSorted) {
+      const regex = new RegExp(`^${tv.libelle}\\s+`, 'i');
+      if (regex.test(remaining)) {
+        extractedTypeVoieId = tv.id;
+        remaining = remaining.replace(regex, '').trim();
+        break;
+      }
+    }
+
+    extractedNomVoie = remaining;
+
+    return {
+      numVoie: extractedNum,
+      typeVoieId: extractedTypeVoieId,
+      nomVoie: extractedNomVoie,
+    };
+  };
+
   // Auto-fill location when site is selected or clear when deselected
   useEffect(() => {
     if (selectedSite) {
@@ -102,18 +141,31 @@ export function StepInfos({
         setCommuneId(matchingCommune.id);
       }
 
-      // Auto-fill address - always update, even to empty
-      setNomVoie(selectedSite.adresse || '');
+      // Parse and auto-fill address fields
+      if (selectedSite.adresse) {
+        const parsed = parseAddress(selectedSite.adresse, typesVoies);
+        setNumVoie(parsed.numVoie);
+        if (parsed.typeVoieId) {
+          setTypeVoieId(parsed.typeVoieId);
+        }
+        setNomVoie(parsed.nomVoie);
+      } else {
+        setNumVoie('');
+        setTypeVoieId('');
+        setNomVoie('');
+      }
 
-      // Auto-fill complement - always update, even to empty
-      setComplementAdresse(selectedSite.complement || '');
+      // DO NOT copy site notes to complement - notes are informational only
+      // Keep complement empty or let user fill it manually
     } else {
       // When site is deselected, clear the auto-filled fields
       setCommuneId('');
+      setNumVoie('');
+      setTypeVoieId('');
       setNomVoie('');
       setComplementAdresse('');
     }
-  }, [selectedSite, communes, setCommuneId, setNomVoie, setComplementAdresse]);
+  }, [selectedSite, communes, typesVoies, setCommuneId, setNumVoie, setTypeVoieId, setNomVoie, setComplementAdresse]);
 
   // Determine if location is from site (read-only display)
   const isLocationFromSite = !!selectedSite;
