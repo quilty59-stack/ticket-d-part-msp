@@ -121,7 +121,7 @@ export function useCreateSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: { code: string; nom: string; description?: string; date_debut?: string; date_fin?: string }) => {
+    mutationFn: async (data: { code: string; nom: string; description?: string; date_debut?: string; date_fin?: string; created_by?: string }) => {
       const { error, data: result } = await supabase
         .from('sessions_formation')
         .insert(data)

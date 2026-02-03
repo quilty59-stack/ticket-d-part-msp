@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { useGrades } from '@/hooks/useReferenceData';
 import {
   useSessionsFormation,
@@ -69,6 +70,7 @@ const POSTES = [
 
 export default function SessionsFormation() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { data: sessions = [], isLoading: loadingSessions } = useSessionsFormation();
   const { data: grades = [] } = useGrades();
 
@@ -90,11 +92,21 @@ export default function SessionsFormation() {
 
   // New session form
   const [newSessionOpen, setNewSessionOpen] = useState(false);
-  const [sessionCode, setSessionCode] = useState('');
   const [sessionNom, setSessionNom] = useState('');
   const [sessionDescription, setSessionDescription] = useState('');
   const [sessionDateDebut, setSessionDateDebut] = useState('');
   const [sessionDateFin, setSessionDateFin] = useState('');
+
+  // Generate code from name (uppercase, replace spaces with dashes, remove accents)
+  const generateCode = (nom: string) => {
+    return nom
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^A-Z0-9-]/g, '')
+      .substring(0, 20);
+  };
 
   // Stagiaire form
   const [stagGradeId, setStagGradeId] = useState('');
@@ -109,29 +121,31 @@ export default function SessionsFormation() {
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionCode.trim() || !sessionNom.trim()) {
+    if (!sessionNom.trim()) {
       toast({
-        title: 'Champs requis',
-        description: 'Le code et le nom de la session sont obligatoires',
+        title: 'Champ requis',
+        description: 'Le nom de la session est obligatoire',
         variant: 'destructive',
       });
       return;
     }
 
+    const code = generateCode(sessionNom);
+
     try {
       const result = await createSession.mutateAsync({
-        code: sessionCode.toUpperCase(),
+        code,
         nom: sessionNom,
         description: sessionDescription || undefined,
         date_debut: sessionDateDebut || undefined,
         date_fin: sessionDateFin || undefined,
+        created_by: user?.id,
       });
       toast({
         title: 'Session créée',
-        description: `La session ${sessionCode} a été créée`,
+        description: `La session ${code} a été créée`,
       });
       setNewSessionOpen(false);
-      setSessionCode('');
       setSessionNom('');
       setSessionDescription('');
       setSessionDateDebut('');
@@ -264,26 +278,19 @@ export default function SessionsFormation() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="session-code">Code *</Label>
-                      <Input
-                        id="session-code"
-                        placeholder="CATE 2026-01"
-                        value={sessionCode}
-                        onChange={(e) => setSessionCode(e.target.value)}
-                        className="uppercase"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="session-nom">Nom *</Label>
-                      <Input
-                        id="session-nom"
-                        placeholder="Formation CATE Janvier"
-                        value={sessionNom}
-                        onChange={(e) => setSessionNom(e.target.value)}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="session-nom">Nom de la session *</Label>
+                    <Input
+                      id="session-nom"
+                      placeholder="CATE 2026-01"
+                      value={sessionNom}
+                      onChange={(e) => setSessionNom(e.target.value)}
+                    />
+                    {sessionNom && (
+                      <p className="text-xs text-muted-foreground">
+                        Code généré : <span className="font-mono font-semibold">{generateCode(sessionNom)}</span>
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="session-desc">Description</Label>
