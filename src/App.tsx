@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NouveauTicket from "./pages/NouveauTicket";
 import Historique from "./pages/Historique";
-import Stagiaires from "./pages/Stagiaires";
+import SessionsFormation from "./pages/SessionsFormation";
 import Sites from "./pages/Sites";
 import SitesTemporaires from "./pages/SitesTemporaires";
 import NotFound from "./pages/NotFound";
@@ -58,10 +58,10 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/stagiaires"
+        path="/formations"
         element={
           <ProtectedRoute>
-            <Stagiaires />
+            <SessionsFormation />
           </ProtectedRoute>
         }
       />

@@ -136,6 +136,7 @@ export type Database = {
           nom: string
           poste: string
           prenom: string
+          session_id: string | null
         }
         Insert: {
           created_at?: string
@@ -144,6 +145,7 @@ export type Database = {
           nom: string
           poste: string
           prenom: string
+          session_id?: string | null
         }
         Update: {
           created_at?: string
@@ -152,6 +154,7 @@ export type Database = {
           nom?: string
           poste?: string
           prenom?: string
+          session_id?: string | null
         }
         Relationships: [
           {
@@ -159,6 +162,13 @@ export type Database = {
             columns: ["grade_id"]
             isOneToOne: false
             referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manoeuvrants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions_formation"
             referencedColumns: ["id"]
           },
         ]
@@ -300,6 +310,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sessions_formation: {
+        Row: {
+          actif: boolean | null
+          code: string
+          created_at: string
+          created_by: string | null
+          date_debut: string | null
+          date_fin: string | null
+          description: string | null
+          id: string
+          nom: string
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          date_debut?: string | null
+          date_fin?: string | null
+          description?: string | null
+          id?: string
+          nom: string
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          date_debut?: string | null
+          date_fin?: string | null
+          description?: string | null
+          id?: string
+          nom?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sites_temporaires: {
         Row: {
           adresse: string | null
@@ -349,6 +398,7 @@ export type Database = {
           id: string
           nom: string
           prenom: string
+          session_id: string | null
         }
         Insert: {
           created_at?: string
@@ -357,6 +407,7 @@ export type Database = {
           id?: string
           nom: string
           prenom: string
+          session_id?: string | null
         }
         Update: {
           created_at?: string
@@ -365,6 +416,7 @@ export type Database = {
           id?: string
           nom?: string
           prenom?: string
+          session_id?: string | null
         }
         Relationships: [
           {
@@ -372,6 +424,13 @@ export type Database = {
             columns: ["grade_id"]
             isOneToOne: false
             referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stagiaires_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions_formation"
             referencedColumns: ["id"]
           },
         ]

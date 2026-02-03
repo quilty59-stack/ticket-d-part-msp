@@ -107,6 +107,7 @@ export interface Stagiaire {
   nom: string;
   prenom: string;
   date_ajout: string;
+  session_id: string | null;
   created_at: string;
   grades?: Grade;
 }
@@ -117,6 +118,7 @@ export interface Manoeuvrant {
   nom: string;
   prenom: string;
   poste: 'CA' | 'COND' | 'CE' | 'EQ';
+  session_id: string | null;
   created_at: string;
   grades?: Grade;
 }
