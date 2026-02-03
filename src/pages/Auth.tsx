@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Flame, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import logoCfd71 from '@/assets/logo-cfd71.png';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -74,15 +75,21 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-            <Flame className="w-10 h-10 text-primary-foreground" />
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#010217' }}>
+      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur">
+        <CardHeader className="text-center space-y-4 pb-2">
+          <div className="mx-auto">
+            <img 
+              src={logoCfd71} 
+              alt="CFD71" 
+              className="w-32 h-32 object-contain mx-auto"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">Tickets de Départ</CardTitle>
-          <CardDescription>
-            SDIS 71 - Gestion des interventions
+          <CardTitle className="text-2xl font-bold" style={{ color: '#010217' }}>
+            Tickets de Départ
+          </CardTitle>
+          <CardDescription className="text-base">
+            Centre de Formation Départemental 71
           </CardDescription>
         </CardHeader>
         
@@ -119,7 +126,12 @@ export default function Auth() {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full text-white" 
+                  disabled={isLoading}
+                  style={{ backgroundColor: '#C1272D' }}
+                >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -171,7 +183,12 @@ export default function Auth() {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full text-white" 
+                  disabled={isLoading}
+                  style={{ backgroundColor: '#C1272D' }}
+                >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
