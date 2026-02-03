@@ -128,9 +128,8 @@ export default function Auth() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full text-white" 
+                  className="w-full" 
                   disabled={isLoading}
-                  style={{ backgroundColor: '#C1272D' }}
                 >
                   {isLoading ? (
                     <>
@@ -185,9 +184,8 @@ export default function Auth() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full text-white" 
+                  className="w-full" 
                   disabled={isLoading}
-                  style={{ backgroundColor: '#C1272D' }}
                 >
                   {isLoading ? (
                     <>
