@@ -30,6 +30,7 @@ import {
   GraduationCap,
   Wrench,
   ChevronRight,
+  RotateCcw,
   ChevronLeft,
   AlertCircle,
 } from 'lucide-react';
@@ -123,6 +124,39 @@ export default function NouveauTicket() {
       setSelectedRenfortTicket(null);
     }
   }, [isRenfortMode]);
+
+  // Reset all form fields
+  const handleReset = () => {
+    setCurrentStep('infos');
+    setDateIntervention(new Date().toISOString().slice(0, 16));
+    setOrigineId('');
+    setCommuneId('');
+    setTypeLieuId('');
+    setNumVoie('');
+    setTypeVoieId('');
+    setNomVoie('');
+    setComplementAdresse('');
+    setCategorieId('');
+    setNatureId('');
+    setComplementNature('');
+    setAppelant('');
+    setVictime('');
+    setRensCompl('');
+    setCoordonnees('');
+    setPtsEauIndispo('');
+    setTransit('');
+    setTalkgroup('');
+    setRenfort('');
+    setMessage('');
+    setSelectedSite(null);
+    setSelectedRenfortTicket(null);
+    setSelectedVehicules([]);
+    setAffectations({});
+    toast({
+      title: 'Formulaire réinitialisé',
+      description: 'Tous les champs ont été remis à zéro',
+    });
+  };
 
   // Combine personnel, stagiaires and manoeuvrants
   const personnelDisponible = useMemo<PersonnelDisponible[]>(() => {
@@ -386,19 +420,30 @@ export default function NouveauTicket() {
       <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              {isRenfortMode ? (
-                <>
-                  <AlertCircle className="w-6 h-6 text-orange-500" />
-                  Demande de Renfort
-                </>
-              ) : (
-                <>
-                  <Flame className="w-6 h-6 text-primary" />
-                  Nouveau Ticket de Départ
-                </>
-              )}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                {isRenfortMode ? (
+                  <>
+                    <AlertCircle className="w-6 h-6 text-orange-500" />
+                    Demande de Renfort
+                  </>
+                ) : (
+                  <>
+                    <Flame className="w-6 h-6 text-primary" />
+                    Nouveau Ticket de Départ
+                  </>
+                )}
+              </h1>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="gap-1"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset
+              </Button>
+            </div>
           </div>
 
           <Tabs value={currentStep} onValueChange={(v) => setCurrentStep(v as StepId)}>
