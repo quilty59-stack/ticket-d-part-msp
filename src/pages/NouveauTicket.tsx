@@ -17,6 +17,7 @@ import {
   useStagiaires,
   useManoeuvrants,
 } from '@/hooks/useReferenceData';
+import { useActiveSessionsFormation, useStagiairesBySession, useManoeuvrantsBySession } from '@/hooks/useSessionsFormation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -94,6 +95,9 @@ export default function NouveauTicket() {
   >({});
   const [vehiculeSelectOpen, setVehiculeSelectOpen] = useState(false);
 
+  // Session filter state
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
   // Drag state
   const [activeDragItem, setActiveDragItem] = useState<PersonnelDisponible | null>(null);
 
@@ -106,8 +110,17 @@ export default function NouveauTicket() {
   const { data: origines = [] } = useOrigines();
   const { data: vehicules = [] } = useVehicules();
   const { data: personnel = [] } = usePersonnel();
-  const { data: stagiaires = [] } = useStagiaires();
-  const { data: manoeuvrants = [] } = useManoeuvrants();
+  const { data: allStagiaires = [] } = useStagiaires();
+  const { data: allManoeuvrants = [] } = useManoeuvrants();
+  
+  // Sessions and filtered personnel
+  const { data: sessions = [] } = useActiveSessionsFormation();
+  const { data: sessionStagiaires = [] } = useStagiairesBySession(selectedSessionId);
+  const { data: sessionManoeuvrants = [] } = useManoeuvrantsBySession(selectedSessionId);
+  
+  // Use filtered data if session selected, otherwise use all
+  const stagiaires = selectedSessionId ? sessionStagiaires : allStagiaires;
+  const manoeuvrants = selectedSessionId ? sessionManoeuvrants : allManoeuvrants;
 
   // Check if mode renfort
   const isRenfortMode = useMemo(() => {
@@ -152,6 +165,7 @@ export default function NouveauTicket() {
     setSelectedRenfortTicket(null);
     setSelectedVehicules([]);
     setAffectations({});
+    setSelectedSessionId(null);
     toast({
       title: 'Formulaire réinitialisé',
       description: 'Tous les champs ont été remis à zéro',
@@ -162,7 +176,7 @@ export default function NouveauTicket() {
   const personnelDisponible = useMemo<PersonnelDisponible[]>(() => {
     const permanents: PersonnelDisponible[] = personnel.map((p) => ({
       id: p.id,
-      type: 'permanent',
+      type: 'permanent' as const,
       grade_code: p.grades?.code || '',
       grade_libelle: p.grades?.libelle || '',
       nom: p.nom,
@@ -171,7 +185,7 @@ export default function NouveauTicket() {
 
     const stags: PersonnelDisponible[] = stagiaires.map((s) => ({
       id: s.id,
-      type: 'stagiaire',
+      type: 'stagiaire' as const,
       grade_code: s.grades?.code || '',
       grade_libelle: s.grades?.libelle || '',
       nom: s.nom,
@@ -180,12 +194,12 @@ export default function NouveauTicket() {
 
     const manoeuv: PersonnelDisponible[] = manoeuvrants.map((m) => ({
       id: m.id,
-      type: 'manoeuvrant',
+      type: 'manoeuvrant' as const,
       grade_code: m.grades?.code || '',
       grade_libelle: m.grades?.libelle || '',
       nom: m.nom,
       prenom: m.prenom,
-      poste: m.poste,
+      poste: m.poste as 'CA' | 'COND' | 'CE' | 'EQ',
     }));
 
     return [...manoeuv, ...permanents, ...stags];
@@ -537,6 +551,9 @@ export default function NouveauTicket() {
                 onAddVehicule={handleAddVehicule}
                 onRemoveVehicule={handleRemoveVehicule}
                 onRemoveAffectation={handleRemoveAffectation}
+                sessions={sessions}
+                selectedSessionId={selectedSessionId}
+                onSessionChange={setSelectedSessionId}
               />
             </TabsContent>
           </Tabs>

@@ -14,10 +14,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { PersonnelCard } from '@/components/ticket/PersonnelCard';
 import { VehiculeCard } from '@/components/ticket/VehiculeCard';
-import { Truck, Users, Plus, User, GraduationCap, Wrench } from 'lucide-react';
+import { Truck, Users, Plus, User, GraduationCap, Wrench, BookOpen } from 'lucide-react';
 import type { Vehicule, PersonnelDisponible } from '@/lib/supabase-types';
+import type { SessionFormation } from '@/hooks/useSessionsFormation';
 
 const posteLabels: Record<string, string> = {
   CA: 'Chef d\'Agrès',
@@ -37,6 +45,10 @@ interface StepMoyensProps {
   onAddVehicule: (vehicule: Vehicule) => void;
   onRemoveVehicule: (vehiculeId: string) => void;
   onRemoveAffectation: (vehiculeId: string, posteKey: string) => void;
+  // Session filter props
+  sessions: SessionFormation[];
+  selectedSessionId: string | null;
+  onSessionChange: (sessionId: string | null) => void;
 }
 
 export function StepMoyens({
@@ -50,6 +62,9 @@ export function StepMoyens({
   onAddVehicule,
   onRemoveVehicule,
   onRemoveAffectation,
+  sessions,
+  selectedSessionId,
+  onSessionChange,
 }: StepMoyensProps) {
   // Grouper le personnel par type
   const permanents = useMemo(
@@ -127,13 +142,37 @@ export function StepMoyens({
       {/* Right column - Personnel disponible */}
       <div className="space-y-4">
         <Card className="sticky top-20">
-          <CardHeader className="py-4">
+          <CardHeader className="py-4 space-y-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="w-5 h-5" />
               Personnel disponible
             </CardTitle>
+            
+            {/* Session filter */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                <BookOpen className="w-3 h-3" />
+                Filtrer par session
+              </label>
+              <Select
+                value={selectedSessionId || 'all'}
+                onValueChange={(value) => onSessionChange(value === 'all' ? null : value)}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Toutes les sessions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les sessions</SelectItem>
+                  {sessions.map((session) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {session.code} - {session.nom}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[calc(100vh-360px)] overflow-y-auto">
             {/* Manœuvrants */}
             {manoeuvrants.length > 0 && (
               <div className="space-y-2">
