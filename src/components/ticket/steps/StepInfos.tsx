@@ -130,12 +130,20 @@ export function StepInfos({
     };
   };
 
+  // Normalize string: remove accents for comparison
+  const normalizeString = (str: string) => {
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
   // Auto-fill location when site is selected or clear when deselected
   useEffect(() => {
     if (selectedSite) {
-      // Find commune by name
+      // Find commune by name (accent-insensitive)
       const matchingCommune = communes.find(
-        (c) => c.nom.toLowerCase() === selectedSite.commune?.toLowerCase()
+        (c) => normalizeString(c.nom) === normalizeString(selectedSite.commune || '')
       );
       if (matchingCommune) {
         setCommuneId(matchingCommune.id);
