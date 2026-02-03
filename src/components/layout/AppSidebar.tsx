@@ -37,7 +37,7 @@ const mainNavItems = [
   { title: 'Historique', url: '/historique', icon: History },
   { title: 'Sites conventionnés', url: '/sites', icon: Building2 },
   { title: 'Sites temporaires', url: '/sites-temporaires', icon: MapPinned },
-  { title: 'Personnel temporaire', url: '/stagiaires', icon: Users },
+  { title: 'Sessions de formation', url: '/formations', icon: Users },
 ];
 
 const adminNavItems = [
