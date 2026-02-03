@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { PersonnelCard } from '@/components/ticket/PersonnelCard';
 import { VehiculeCard } from '@/components/ticket/VehiculeCard';
-import { Truck, Users, Plus, User, GraduationCap, Wrench, BookOpen } from 'lucide-react';
+import { Truck, Users, Plus, GraduationCap, Wrench, BookOpen } from 'lucide-react';
 import type { Vehicule, PersonnelDisponible } from '@/lib/supabase-types';
 import type { SessionFormation } from '@/hooks/useSessionsFormation';
 
@@ -67,10 +67,6 @@ export function StepMoyens({
   onSessionChange,
 }: StepMoyensProps) {
   // Grouper le personnel par type
-  const permanents = useMemo(
-    () => personnelDisponible.filter((p) => p.type === 'permanent'),
-    [personnelDisponible]
-  );
   const stagiaires = useMemo(
     () => personnelDisponible.filter((p) => p.type === 'stagiaire'),
     [personnelDisponible]
@@ -193,22 +189,6 @@ export function StepMoyens({
               </div>
             )}
 
-            {/* Permanents */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                <User className="w-4 h-4" />
-                Permanents ({permanents.length})
-              </h4>
-              <div className="space-y-2">
-                {permanents.map((person) => (
-                  <PersonnelCard
-                    key={person.id}
-                    person={person}
-                    isAffected={affectedIds.has(person.id)}
-                  />
-                ))}
-              </div>
-            </div>
 
             {/* Stagiaires */}
             <div className="space-y-2">
