@@ -45,14 +45,14 @@
     --nrbce: 54 100% 62%;
     --prestations: 122 39% 49%;
 
-    /* Sidebar pompier */
-    --sidebar-background: 357 66% 46%;
+    /* Sidebar CFD71 - Bleu nuit #010217 */
+    --sidebar-background: 233 93% 5%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 357 66% 46%;
-    --sidebar-accent: 357 66% 40%;
+    --sidebar-primary-foreground: 233 93% 5%;
+    --sidebar-accent: 233 70% 12%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 357 66% 38%;
+    --sidebar-border: 233 70% 15%;
     --sidebar-ring: 0 0% 100%;
   }
 
