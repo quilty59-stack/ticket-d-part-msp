@@ -155,6 +155,14 @@ export function StepInfos({
         setNomVoie('');
       }
 
+      // Set default type de lieu to "ETABLISSEMENT" when a site is selected
+      const etablissementType = typesLieux.find(
+        (t) => t.libelle.toUpperCase() === 'ETABLISSEMENT'
+      );
+      if (etablissementType) {
+        setTypeLieuId(etablissementType.id);
+      }
+
       // DO NOT copy site notes to complement - notes are informational only
       // Keep complement empty or let user fill it manually
     } else {
@@ -165,7 +173,7 @@ export function StepInfos({
       setNomVoie('');
       setComplementAdresse('');
     }
-  }, [selectedSite, communes, typesVoies, setCommuneId, setNumVoie, setTypeVoieId, setNomVoie, setComplementAdresse]);
+  }, [selectedSite, communes, typesVoies, typesLieux, setCommuneId, setNumVoie, setTypeVoieId, setNomVoie, setComplementAdresse, setTypeLieuId]);
 
   // Determine if location is from site (read-only display)
   const isLocationFromSite = !!selectedSite;
