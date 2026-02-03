@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -27,9 +26,8 @@ import {
 import { FileText, MapPin, Check, ChevronsUpDown, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RenfortTicketSelector } from '@/components/ticket/RenfortTicketSelector';
-import { SiteMSPSelector } from '@/components/ticket/SiteMSPSelector';
+import { SiteSelector, type SelectedSite } from '@/components/ticket/SiteSelector';
 import type { Origine, Commune, TypeLieu, TypeVoie, Ticket } from '@/lib/supabase-types';
-import type { SiteConventionne } from '@/hooks/useSitesConventionnes';
 
 interface StepInfosProps {
   // Infos intervention
@@ -42,9 +40,9 @@ interface StepInfosProps {
   isRenfortMode: boolean;
   selectedRenfortTicket: Ticket | null;
   onSelectRenfortTicket: (ticket: Ticket | null) => void;
-  // Site MSP
-  selectedSiteId: string | null;
-  onSelectSite: (site: SiteConventionne | null) => void;
+  // Site (conventionne ou temporaire)
+  selectedSite: SelectedSite | null;
+  onSelectSite: (site: SelectedSite | null) => void;
   // Localisation
   communeId: string;
   setCommuneId: (value: string) => void;
@@ -72,7 +70,7 @@ export function StepInfos({
   isRenfortMode,
   selectedRenfortTicket,
   onSelectRenfortTicket,
-  selectedSiteId,
+  selectedSite,
   onSelectSite,
   communeId,
   setCommuneId,
@@ -92,6 +90,32 @@ export function StepInfos({
 }: StepInfosProps) {
   const [communeOpen, setCommuneOpen] = useState(false);
   const selectedCommune = communes.find((c) => c.id === communeId);
+
+  // Auto-fill location when site is selected
+  useEffect(() => {
+    if (selectedSite) {
+      // Find commune by name
+      const matchingCommune = communes.find(
+        (c) => c.nom.toLowerCase() === selectedSite.commune?.toLowerCase()
+      );
+      if (matchingCommune) {
+        setCommuneId(matchingCommune.id);
+      }
+
+      // Auto-fill address
+      if (selectedSite.adresse) {
+        setNomVoie(selectedSite.adresse);
+      }
+
+      // Auto-fill complement
+      if (selectedSite.complement) {
+        setComplementAdresse(selectedSite.complement);
+      }
+    }
+  }, [selectedSite, communes, setCommuneId, setNomVoie, setComplementAdresse]);
+
+  // Determine if location is from site (read-only display)
+  const isLocationFromSite = !!selectedSite;
 
   return (
     <div className="space-y-6">
@@ -142,21 +166,6 @@ export function StepInfos({
         </CardContent>
       </Card>
 
-      {/* Site MSP Selector */}
-      {!isRenfortMode && (
-        <Card>
-          <CardHeader className="py-4">
-            <CardTitle className="text-lg">Site MSP conventionné</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SiteMSPSelector
-              selectedSiteId={selectedSiteId}
-              onSelectSite={onSelectSite}
-            />
-          </CardContent>
-        </Card>
-      )}
-
       {/* Mode Renfort : Sélection du ticket existant */}
       {isRenfortMode ? (
         <RenfortTicketSelector
@@ -164,120 +173,137 @@ export function StepInfos({
           onSelectTicket={onSelectRenfortTicket}
         />
       ) : (
-        /* Mode Normal : Localisation */
-        <Card>
-          <CardHeader className="py-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              Localisation
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Commune</Label>
-                <Popover open={communeOpen} onOpenChange={setCommuneOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="w-full justify-between"
-                    >
-                      {selectedCommune?.nom || 'Sélectionner une commune'}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Rechercher une commune..." />
-                      <CommandList>
-                        <CommandEmpty>Aucune commune trouvée</CommandEmpty>
-                        <CommandGroup>
-                          {communes.map((c) => (
-                            <CommandItem
-                              key={c.id}
-                              value={c.nom}
-                              onSelect={() => {
-                                setCommuneId(c.id);
-                                setCommuneOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  communeId === c.id ? 'opacity-100' : 'opacity-0'
-                                )}
-                              />
-                              {c.nom}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label>Type de lieu</Label>
-                <Select value={typeLieuId} onValueChange={setTypeLieuId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typesLieux.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.libelle}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <>
+          {/* Site Selector */}
+          <Card>
+            <CardHeader className="py-4">
+              <CardTitle className="text-lg">Site conventionné ou temporaire</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SiteSelector selectedSite={selectedSite} onSelectSite={onSelectSite} />
+            </CardContent>
+          </Card>
 
-            <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-2 space-y-2">
-                <Label>N°</Label>
+          {/* Localisation */}
+          <Card>
+            <CardHeader className="py-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Localisation
+                {isLocationFromSite && (
+                  <span className="text-xs font-normal text-muted-foreground ml-2">
+                    (pré-rempli depuis le site)
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Commune</Label>
+                  <Popover open={communeOpen} onOpenChange={setCommuneOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {selectedCommune?.nom || 'Sélectionner une commune'}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Rechercher une commune..." />
+                        <CommandList>
+                          <CommandEmpty>Aucune commune trouvée</CommandEmpty>
+                          <CommandGroup>
+                            {communes.map((c) => (
+                              <CommandItem
+                                key={c.id}
+                                value={c.nom}
+                                onSelect={() => {
+                                  setCommuneId(c.id);
+                                  setCommuneOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    'mr-2 h-4 w-4',
+                                    communeId === c.id ? 'opacity-100' : 'opacity-0'
+                                  )}
+                                />
+                                {c.nom}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label>Type de lieu</Label>
+                  <Select value={typeLieuId} onValueChange={setTypeLieuId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typesLieux.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.libelle}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-2 space-y-2">
+                  <Label>N°</Label>
+                  <Input
+                    placeholder="123"
+                    value={numVoie}
+                    onChange={(e) => setNumVoie(e.target.value)}
+                  />
+                </div>
+                <div className="col-span-3 space-y-2">
+                  <Label>Type voie</Label>
+                  <Select value={typeVoieId} onValueChange={setTypeVoieId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typesVoies.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>
+                          {t.libelle}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-7 space-y-2">
+                  <Label>Nom de voie</Label>
+                  <Input
+                    placeholder="DE LA GRISIERE"
+                    value={nomVoie}
+                    onChange={(e) => setNomVoie(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Complément d'adresse</Label>
                 <Input
-                  placeholder="123"
-                  value={numVoie}
-                  onChange={(e) => setNumVoie(e.target.value)}
+                  placeholder="Angle route de Sancé, bâtiment B..."
+                  value={complementAdresse}
+                  onChange={(e) => setComplementAdresse(e.target.value)}
                 />
               </div>
-              <div className="col-span-3 space-y-2">
-                <Label>Type voie</Label>
-                <Select value={typeVoieId} onValueChange={setTypeVoieId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typesVoies.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.libelle}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-7 space-y-2">
-                <Label>Nom de voie</Label>
-                <Input
-                  placeholder="DE LA GRISIERE"
-                  value={nomVoie}
-                  onChange={(e) => setNomVoie(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Complément d'adresse</Label>
-              <Input
-                placeholder="Angle route de Sancé, bâtiment B..."
-                value={complementAdresse}
-                onChange={(e) => setComplementAdresse(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

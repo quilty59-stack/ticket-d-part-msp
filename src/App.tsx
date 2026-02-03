@@ -11,6 +11,7 @@ import NouveauTicket from "./pages/NouveauTicket";
 import Historique from "./pages/Historique";
 import Stagiaires from "./pages/Stagiaires";
 import Sites from "./pages/Sites";
+import SitesTemporaires from "./pages/SitesTemporaires";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +70,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Sites />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sites-temporaires"
+        element={
+          <ProtectedRoute>
+            <SitesTemporaires />
           </ProtectedRoute>
         }
       />
