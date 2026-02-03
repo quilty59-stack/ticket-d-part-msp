@@ -28,13 +28,15 @@ import {
   Flame,
   History,
   Building2,
+  MapPinned,
 } from 'lucide-react';
 
 const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
   { title: 'Nouveau ticket', url: '/ticket/nouveau', icon: Plus },
   { title: 'Historique', url: '/historique', icon: History },
-  { title: 'Sites MSP', url: '/sites', icon: Building2 },
+  { title: 'Sites conventionnés', url: '/sites', icon: Building2 },
+  { title: 'Sites temporaires', url: '/sites-temporaires', icon: MapPinned },
   { title: 'Personnel temporaire', url: '/stagiaires', icon: Users },
 ];
 

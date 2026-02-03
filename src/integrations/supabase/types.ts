@@ -300,6 +300,47 @@ export type Database = {
         }
         Relationships: []
       }
+      sites_temporaires: {
+        Row: {
+          adresse: string | null
+          commune_id: string | null
+          complement: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nom: string
+          updated_at: string
+        }
+        Insert: {
+          adresse?: string | null
+          commune_id?: string | null
+          complement?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nom: string
+          updated_at?: string
+        }
+        Update: {
+          adresse?: string | null
+          commune_id?: string | null
+          complement?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nom?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_temporaires_commune_id_fkey"
+            columns: ["commune_id"]
+            isOneToOne: false
+            referencedRelation: "communes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stagiaires: {
         Row: {
           created_at: string

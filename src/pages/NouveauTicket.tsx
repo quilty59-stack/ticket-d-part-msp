@@ -34,7 +34,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import type { Vehicule, PersonnelDisponible, MoyenAffecte, Ticket } from '@/lib/supabase-types';
-import type { SiteConventionne } from '@/hooks/useSitesConventionnes';
+import type { SelectedSite } from '@/components/ticket/SiteSelector';
 
 const STEPS_NORMAL = [
   { id: 'infos', label: 'Infos & Localisation', icon: FileText },
@@ -81,7 +81,7 @@ export default function NouveauTicket() {
   const [talkgroup, setTalkgroup] = useState('');
   const [renfort, setRenfort] = useState('');
   const [message, setMessage] = useState('');
-  const [siteId, setSiteId] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<SelectedSite | null>(null);
 
   // Mode renfort
   const [selectedRenfortTicket, setSelectedRenfortTicket] = useState<Ticket | null>(null);
@@ -307,7 +307,7 @@ export default function NouveauTicket() {
         moyens: moyens,
         etat,
         created_by: user?.id,
-        site_id: siteId || null,
+        site_id: selectedSite?.id || null,
       };
 
       const { data, error } = await supabase
@@ -427,8 +427,8 @@ export default function NouveauTicket() {
                 isRenfortMode={isRenfortMode}
                 selectedRenfortTicket={selectedRenfortTicket}
                 onSelectRenfortTicket={setSelectedRenfortTicket}
-                selectedSiteId={siteId}
-                onSelectSite={(site: SiteConventionne | null) => setSiteId(site?.id || null)}
+                selectedSite={selectedSite}
+                onSelectSite={setSelectedSite}
                 communeId={communeId}
                 setCommuneId={setCommuneId}
                 communes={communes}
