@@ -23,9 +23,11 @@ import {
 } from '@/components/ui/select';
 import { PersonnelCard } from '@/components/ticket/PersonnelCard';
 import { VehiculeCard } from '@/components/ticket/VehiculeCard';
-import { Truck, Users, Plus, GraduationCap, Wrench, BookOpen } from 'lucide-react';
+import { StatsLegend } from '@/components/ticket/AffectationStatsBadges';
+import { Truck, Users, Plus, GraduationCap, Wrench, BookOpen, BarChart3 } from 'lucide-react';
 import type { Vehicule, PersonnelDisponible } from '@/lib/supabase-types';
 import type { SessionFormation } from '@/hooks/useSessionsFormation';
+import type { PersonnelStats } from '@/hooks/useAffectationStats';
 
 const posteLabels: Record<string, string> = {
   CA: 'Chef d\'Agrès',
@@ -49,6 +51,8 @@ interface StepMoyensProps {
   sessions: SessionFormation[];
   selectedSessionId: string | null;
   onSessionChange: (sessionId: string | null) => void;
+  // Stats
+  personnelStats?: Record<string, PersonnelStats>;
 }
 
 export function StepMoyens({
@@ -65,21 +69,41 @@ export function StepMoyens({
   sessions,
   selectedSessionId,
   onSessionChange,
+  personnelStats = {},
 }: StepMoyensProps) {
-  // Grouper le personnel par type
+  // Grouper le personnel par type et trier par total d'affectations (croissant)
   const stagiaires = useMemo(
-    () => personnelDisponible.filter((p) => p.type === 'stagiaire'),
-    [personnelDisponible]
+    () => personnelDisponible
+      .filter((p) => p.type === 'stagiaire')
+      .sort((a, b) => {
+        const statsA = personnelStats[`stagiaire:${a.id}`];
+        const statsB = personnelStats[`stagiaire:${b.id}`];
+        return (statsA?.total || 0) - (statsB?.total || 0);
+      }),
+    [personnelDisponible, personnelStats]
   );
+  
   const manoeuvrants = useMemo(
-    () => personnelDisponible.filter((p) => p.type === 'manoeuvrant'),
-    [personnelDisponible]
+    () => personnelDisponible
+      .filter((p) => p.type === 'manoeuvrant')
+      .sort((a, b) => {
+        const statsA = personnelStats[`manoeuvrant:${a.id}`];
+        const statsB = personnelStats[`manoeuvrant:${b.id}`];
+        return (statsA?.total || 0) - (statsB?.total || 0);
+      }),
+    [personnelDisponible, personnelStats]
   );
 
+  // Helper pour obtenir les stats d'une personne
+  const getPersonStats = (person: PersonnelDisponible): PersonnelStats | undefined => {
+    const ref = `${person.type}:${person.id}`;
+    return personnelStats[ref];
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
       {/* Left column - Véhicules */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader className="py-4">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -137,12 +161,18 @@ export function StepMoyens({
 
       {/* Right column - Personnel disponible */}
       <div className="space-y-4">
-        <Card className="sticky top-20">
+        <Card>
           <CardHeader className="py-4 space-y-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Personnel disponible
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Personnel disponible
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                <StatsLegend />
+              </div>
+            </div>
             
             {/* Session filter */}
             <div className="space-y-1.5">
@@ -168,7 +198,7 @@ export function StepMoyens({
               </Select>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[calc(100vh-360px)] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-auto">
             {/* Manœuvrants */}
             {manoeuvrants.length > 0 && (
               <div className="space-y-2">
@@ -183,22 +213,22 @@ export function StepMoyens({
                       person={person}
                       isAffected={affectedIds.has(person.id)}
                       badge={person.poste ? posteLabels[person.poste] || person.poste : undefined}
+                      stats={getPersonStats(person)}
                     />
                   ))}
                 </div>
               </div>
             )}
 
-
             {/* Stagiaires */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
                 <GraduationCap className="w-4 h-4" />
-                Stagiaires du jour ({stagiaires.length})
+                Stagiaires ({stagiaires.length})
               </h4>
               {stagiaires.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">
-                  Aucun stagiaire ajouté aujourd'hui
+                  Aucun stagiaire disponible
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -207,6 +237,7 @@ export function StepMoyens({
                       key={person.id}
                       person={person}
                       isAffected={affectedIds.has(person.id)}
+                      stats={getPersonStats(person)}
                     />
                   ))}
                 </div>

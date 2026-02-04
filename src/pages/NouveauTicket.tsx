@@ -18,6 +18,7 @@ import {
   useManoeuvrants,
 } from '@/hooks/useReferenceData';
 import { useActiveSessionsFormation, useStagiairesBySession, useManoeuvrantsBySession } from '@/hooks/useSessionsFormation';
+import { useAffectationStats } from '@/hooks/useAffectationStats';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -134,6 +135,9 @@ export default function NouveauTicket() {
   // Use filtered data if session selected, otherwise use all
   const stagiaires = selectedSessionId ? sessionStagiaires : allStagiaires;
   const manoeuvrants = selectedSessionId ? sessionManoeuvrants : allManoeuvrants;
+
+  // Affectation statistics
+  const { personnelStats } = useAffectationStats(selectedSessionId);
 
   // Check if mode renfort (either from origin dropdown or direct from Historique)
   const isRenfortMode = useMemo(() => {
@@ -574,6 +578,7 @@ export default function NouveauTicket() {
                 sessions={sessions}
                 selectedSessionId={selectedSessionId}
                 onSessionChange={setSelectedSessionId}
+                personnelStats={personnelStats}
               />
             </TabsContent>
           </Tabs>

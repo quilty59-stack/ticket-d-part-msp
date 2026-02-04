@@ -28,6 +28,7 @@ import {
   History,
   Building2,
   MapPinned,
+  BarChart3,
 } from 'lucide-react';
 import logoCfd71 from '@/assets/logo-cfd71.png';
 
@@ -35,6 +36,7 @@ const mainNavItems = [
   { title: 'Accueil', url: '/', icon: Home },
   { title: 'Nouveau ticket', url: '/ticket/nouveau', icon: Plus },
   { title: 'Historique', url: '/historique', icon: History },
+  { title: 'Statistiques', url: '/statistiques', icon: BarChart3 },
   { title: 'Sites conventionnés', url: '/sites', icon: Building2 },
   { title: 'Sites temporaires', url: '/sites-temporaires', icon: MapPinned },
   { title: 'Sessions de formation', url: '/formations', icon: Users },
