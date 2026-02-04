@@ -81,7 +81,7 @@ export function useStagiairesBySession(sessionId: string | null) {
     queryFn: async () => {
       let query = supabase
         .from('stagiaires')
-        .select('*, grades(*)')
+        .select('*, grades(*), sessions_formation(*)')
         .order('nom');
       
       if (sessionId) {
@@ -102,7 +102,7 @@ export function useManoeuvrantsBySession(sessionId: string | null) {
     queryFn: async () => {
       let query = supabase
         .from('manoeuvrants')
-        .select('*, grades(*)')
+        .select('*, grades(*), sessions_formation(*)')
         .order('nom');
       
       if (sessionId) {

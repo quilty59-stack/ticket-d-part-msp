@@ -59,6 +59,11 @@ export const PersonnelCard = forwardRef<HTMLDivElement, PersonnelCardProps>(
         <span className="text-sm truncate flex-1">
           {person.nom} {person.prenom}
         </span>
+        {person.session_code && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+            {person.session_code}
+          </span>
+        )}
         {badge && (
           <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
             {badge}
