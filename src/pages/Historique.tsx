@@ -150,7 +150,7 @@ export default function Historique() {
                       <TableHead className="w-24">Créé par</TableHead>
                       <TableHead>Commune</TableHead>
                       <TableHead>Catégorie</TableHead>
-                      <TableHead>Nature</TableHead>
+                      <TableHead className="min-w-[200px]">Nature</TableHead>
                       <TableHead>Moyens</TableHead>
                       <TableHead>État</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -200,7 +200,7 @@ export default function Historique() {
                               '-'
                             )}
                           </TableCell>
-                          <TableCell className="max-w-[120px] truncate">
+                          <TableCell>
                             {ticket.natures?.libelle || '-'}
                           </TableCell>
                           <TableCell>
