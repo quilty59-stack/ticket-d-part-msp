@@ -167,10 +167,10 @@ export function useStagiaires() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stagiaires')
-        .select('*, grades(*)')
+        .select('*, grades(*), sessions_formation(*)')
         .order('nom');
       if (error) throw error;
-      return data as Stagiaire[];
+      return data as (Stagiaire & { sessions_formation?: { code: string; nom: string } })[];
     },
   });
 }
@@ -181,10 +181,10 @@ export function useManoeuvrants() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('manoeuvrants' as never)
-        .select('*, grades(*)')
+        .select('*, grades(*), sessions_formation(*)')
         .order('nom');
       if (error) throw error;
-      return data as unknown as Manoeuvrant[];
+      return data as unknown as (Manoeuvrant & { sessions_formation?: { code: string; nom: string } })[];
     },
   });
 }
