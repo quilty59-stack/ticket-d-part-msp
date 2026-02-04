@@ -205,5 +205,6 @@ export interface PersonnelDisponible {
   nom: string;
   prenom: string;
   poste?: 'CA' | 'COND' | 'CE' | 'EQ'; // Uniquement pour les manœuvrants
+  session_code?: string; // Code de la session d'appartenance
   isAffected?: boolean;
 }

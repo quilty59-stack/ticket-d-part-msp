@@ -207,6 +207,7 @@ export default function NouveauTicket() {
       grade_libelle: s.grades?.libelle || '',
       nom: s.nom,
       prenom: s.prenom,
+      session_code: (s as { sessions_formation?: { code: string } }).sessions_formation?.code,
     }));
 
     const manoeuv: PersonnelDisponible[] = manoeuvrants.map((m) => ({
@@ -217,6 +218,7 @@ export default function NouveauTicket() {
       nom: m.nom,
       prenom: m.prenom,
       poste: m.poste as 'CA' | 'COND' | 'CE' | 'EQ',
+      session_code: (m as { sessions_formation?: { code: string } }).sessions_formation?.code,
     }));
 
     return [...manoeuv, ...permanents, ...stags];
