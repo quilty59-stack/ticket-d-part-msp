@@ -147,7 +147,7 @@ export default function Historique() {
                       <TableHead>N° Inter</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Session</TableHead>
-                      <TableHead>Créé par</TableHead>
+                      <TableHead className="w-24">Créé par</TableHead>
                       <TableHead>Commune</TableHead>
                       <TableHead>Catégorie</TableHead>
                       <TableHead>Nature</TableHead>
