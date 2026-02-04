@@ -84,7 +84,7 @@ export default function Historique() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full px-4 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <History className="w-6 h-6 text-primary" />
