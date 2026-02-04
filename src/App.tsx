@@ -12,6 +12,7 @@ import Historique from "./pages/Historique";
 import SessionsFormation from "./pages/SessionsFormation";
 import Sites from "./pages/Sites";
 import SitesTemporaires from "./pages/SitesTemporaires";
+import Statistiques from "./pages/Statistiques";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SitesTemporaires />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/statistiques"
+        element={
+          <ProtectedRoute>
+            <Statistiques />
           </ProtectedRoute>
         }
       />
