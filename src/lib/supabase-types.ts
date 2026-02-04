@@ -129,6 +129,19 @@ export interface MoyenAffecte {
   postes: Record<string, string | string[]>; // poste -> personnel_id ou stagiaire_id
 }
 
+export interface SessionFormation {
+  id: string;
+  code: string;
+  nom: string;
+  description: string | null;
+  date_debut: string | null;
+  date_fin: string | null;
+  actif: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Ticket {
   id: string;
   num_inter: string;
@@ -154,6 +167,7 @@ export interface Ticket {
   moyens: MoyenAffecte[];
   etat: 'brouillon' | 'valide';
   created_by: string | null;
+  session_id: string | null;
   created_at: string;
   updated_at: string;
   // Relations
@@ -163,6 +177,7 @@ export interface Ticket {
   types_voies?: TypeVoie;
   categories?: Categorie;
   natures?: Nature;
+  sessions_formation?: SessionFormation;
 }
 
 export interface Profile {

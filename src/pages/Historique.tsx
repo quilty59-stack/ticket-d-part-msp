@@ -1,13 +1,21 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useTickets } from '@/hooks/useTickets';
+import { useActiveSessionsFormation } from '@/hooks/useSessionsFormation';
+import { useProfilesByUserIds } from '@/hooks/useProfiles';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -26,43 +34,57 @@ import {
   FileText,
   Loader2,
   Truck,
+  AlertCircle,
+  Filter,
+  User,
+  GraduationCap,
 } from 'lucide-react';
 import type { Ticket, MoyenAffecte } from '@/lib/supabase-types';
 
 export default function Historique() {
+  const navigate = useNavigate();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [printTicket, setPrintTicket] = useState<Ticket | null>(null);
+  const [sessionFilter, setSessionFilter] = useState<string>('all');
 
-  // Fetch tickets
-  const { data: tickets = [], isLoading } = useQuery({
-    queryKey: ['tickets'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('tickets')
-        .select(`
-          *,
-          origines (libelle),
-          communes (nom, code_postal),
-          types_lieux (libelle),
-          types_voies (libelle),
-          categories (code, libelle, couleur),
-          natures (libelle)
-        `)
-        .order('created_at', { ascending: false });
+  // Fetch sessions for filter
+  const { data: sessions = [] } = useActiveSessionsFormation();
 
-      if (error) throw error;
-      return data as unknown as Ticket[];
-    },
-  });
+  // Fetch tickets with optional session filter
+  const { data: tickets = [], isLoading } = useTickets(
+    sessionFilter === 'all' ? null : sessionFilter
+  );
+
+  // Get unique user IDs from tickets to fetch profiles
+  const userIds = useMemo(() => {
+    const ids = tickets
+      .map((t) => t.created_by)
+      .filter((id): id is string => id !== null);
+    return [...new Set(ids)];
+  }, [tickets]);
+
+  // Fetch profiles for all creators
+  const { data: profilesMap = {} } = useProfilesByUserIds(userIds);
 
   // Print handler
   const handlePrint = (ticket: Ticket) => {
     setPrintTicket(ticket);
   };
 
+  // Renfort handler - navigate to nouveau ticket with renfort mode
+  const handleRenfort = (ticket: Ticket) => {
+    // Navigate to the new ticket page with renfort mode and pre-selected ticket
+    navigate('/ticket/nouveau', {
+      state: {
+        renfortMode: true,
+        renfortTicket: ticket,
+      },
+    });
+  };
+
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <History className="w-6 h-6 text-primary" />
@@ -78,10 +100,33 @@ export default function Historique() {
 
         <Card>
           <CardHeader className="py-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Tickets récents
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Tickets récents
+              </CardTitle>
+              
+              {/* Session Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <Select value={sessionFilter} onValueChange={setSessionFilter}>
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Filtrer par session" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes les sessions</SelectItem>
+                    {sessions.map((session) => (
+                      <SelectItem key={session.id} value={session.id}>
+                        <span className="flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4" />
+                          {session.code}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -90,83 +135,121 @@ export default function Historique() {
               </div>
             ) : tickets.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
-                Aucun ticket créé pour le moment
+                {sessionFilter !== 'all' 
+                  ? 'Aucun ticket pour cette session'
+                  : 'Aucun ticket créé pour le moment'}
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>N° Inter</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Commune</TableHead>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead>Nature</TableHead>
-                    <TableHead>Moyens</TableHead>
-                    <TableHead>État</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.map((ticket) => {
-                    const moyens = (ticket.moyens || []) as MoyenAffecte[];
-                    return (
-                      <TableRow key={ticket.id}>
-                        <TableCell className="font-mono font-medium">
-                          {ticket.num_inter}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(ticket.date_intervention), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                        </TableCell>
-                        <TableCell>
-                          {ticket.communes?.nom || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {ticket.categories ? (
-                            <CategoryBadge
-                              code={ticket.categories.code}
-                              libelle={ticket.categories.libelle}
-                            />
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell className="max-w-[150px] truncate">
-                          {ticket.natures?.libelle || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Truck className="w-4 h-4 text-muted-foreground" />
-                            <span>{moyens.length}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={ticket.etat === 'valide' ? 'default' : 'secondary'}>
-                            {ticket.etat === 'valide' ? 'Validé' : 'Brouillon'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setSelectedTicket(ticket)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handlePrint(ticket)}
-                            >
-                              <Printer className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>N° Inter</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Session</TableHead>
+                      <TableHead>Créé par</TableHead>
+                      <TableHead>Commune</TableHead>
+                      <TableHead>Catégorie</TableHead>
+                      <TableHead>Nature</TableHead>
+                      <TableHead>Moyens</TableHead>
+                      <TableHead>État</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tickets.map((ticket) => {
+                      const moyens = (ticket.moyens || []) as MoyenAffecte[];
+                      return (
+                        <TableRow key={ticket.id}>
+                          <TableCell className="font-mono font-medium">
+                            {ticket.num_inter}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {format(new Date(ticket.date_intervention), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                          </TableCell>
+                          <TableCell>
+                            {ticket.sessions_formation ? (
+                              <Badge variant="outline" className="gap-1">
+                                <GraduationCap className="w-3 h-3" />
+                                {ticket.sessions_formation.code}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {ticket.created_by && profilesMap[ticket.created_by] ? (
+                              <span className="flex items-center gap-1 text-sm">
+                                <User className="w-3 h-3 text-muted-foreground" />
+                                {profilesMap[ticket.created_by]}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {ticket.communes?.nom || '-'}
+                          </TableCell>
+                          <TableCell>
+                            {ticket.categories ? (
+                              <CategoryBadge
+                                code={ticket.categories.code}
+                                libelle={ticket.categories.libelle}
+                              />
+                            ) : (
+                              '-'
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-[120px] truncate">
+                            {ticket.natures?.libelle || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Truck className="w-4 h-4 text-muted-foreground" />
+                              <span>{moyens.length}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={ticket.etat === 'valide' ? 'default' : 'secondary'}>
+                              {ticket.etat === 'valide' ? 'Validé' : 'Brouillon'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedTicket(ticket)}
+                                title="Voir le détail"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handlePrint(ticket)}
+                                title="Imprimer"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRenfort(ticket)}
+                                className="gap-1 text-destructive border-destructive/50 hover:bg-destructive/10"
+                                title="Demander un renfort"
+                              >
+                                <AlertCircle className="w-4 h-4" />
+                                Renfort
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

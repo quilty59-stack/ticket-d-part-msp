@@ -457,6 +457,7 @@ export type Database = {
           pts_eau_indispo: string | null
           renfort: string | null
           rens_compl: string | null
+          session_id: string | null
           site_id: string | null
           talkgroup: string | null
           transit: string | null
@@ -486,6 +487,7 @@ export type Database = {
           pts_eau_indispo?: string | null
           renfort?: string | null
           rens_compl?: string | null
+          session_id?: string | null
           site_id?: string | null
           talkgroup?: string | null
           transit?: string | null
@@ -515,6 +517,7 @@ export type Database = {
           pts_eau_indispo?: string | null
           renfort?: string | null
           rens_compl?: string | null
+          session_id?: string | null
           site_id?: string | null
           talkgroup?: string | null
           transit?: string | null
@@ -550,6 +553,13 @@ export type Database = {
             columns: ["origine_id"]
             isOneToOne: false
             referencedRelation: "origines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions_formation"
             referencedColumns: ["id"]
           },
           {
