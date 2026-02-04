@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,12 +53,18 @@ type StepId = 'infos' | 'nature' | 'moyens';
 
 export default function NouveauTicket() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Step state
-  const [currentStep, setCurrentStep] = useState<StepId>('infos');
+  // Check if coming from Historique with renfort mode
+  const locationState = location.state as { renfortMode?: boolean; renfortTicket?: Ticket } | null;
+
+  // Step state - start at moyens if coming from renfort
+  const [currentStep, setCurrentStep] = useState<StepId>(
+    locationState?.renfortMode ? 'moyens' : 'infos'
+  );
 
   // Form state
   const [dateIntervention, setDateIntervention] = useState(
@@ -85,8 +91,15 @@ export default function NouveauTicket() {
   const [message, setMessage] = useState('');
   const [selectedSite, setSelectedSite] = useState<SelectedSite | null>(null);
 
-  // Mode renfort
-  const [selectedRenfortTicket, setSelectedRenfortTicket] = useState<Ticket | null>(null);
+  // Mode renfort - use ticket from navigation state if available
+  const [selectedRenfortTicket, setSelectedRenfortTicket] = useState<Ticket | null>(
+    locationState?.renfortTicket || null
+  );
+  
+  // Direct renfort mode (from historique)
+  const [isDirectRenfortMode, setIsDirectRenfortMode] = useState(
+    locationState?.renfortMode || false
+  );
 
   // Moyens state
   const [selectedVehicules, setSelectedVehicules] = useState<Vehicule[]>([]);
@@ -122,21 +135,22 @@ export default function NouveauTicket() {
   const stagiaires = selectedSessionId ? sessionStagiaires : allStagiaires;
   const manoeuvrants = selectedSessionId ? sessionManoeuvrants : allManoeuvrants;
 
-  // Check if mode renfort
+  // Check if mode renfort (either from origin dropdown or direct from Historique)
   const isRenfortMode = useMemo(() => {
+    if (isDirectRenfortMode) return true;
     const selectedOrigine = origines.find((o) => o.id === origineId);
     return selectedOrigine?.libelle?.toLowerCase().includes('renfort') || false;
-  }, [origineId, origines]);
+  }, [origineId, origines, isDirectRenfortMode]);
 
   // Determine steps based on mode
   const STEPS = isRenfortMode ? STEPS_RENFORT : STEPS_NORMAL;
 
-  // Reset renfort ticket when switching out of renfort mode
+  // Reset renfort ticket when switching out of renfort mode (only for non-direct mode)
   useEffect(() => {
-    if (!isRenfortMode) {
+    if (!isRenfortMode && !isDirectRenfortMode) {
       setSelectedRenfortTicket(null);
     }
-  }, [isRenfortMode]);
+  }, [isRenfortMode, isDirectRenfortMode]);
 
   // Reset all form fields
   const handleReset = () => {
@@ -166,6 +180,9 @@ export default function NouveauTicket() {
     setSelectedVehicules([]);
     setAffectations({});
     setSelectedSessionId(null);
+    setIsDirectRenfortMode(false);
+    // Clear location state
+    navigate('/ticket/nouveau', { replace: true, state: null });
     toast({
       title: 'Formulaire réinitialisé',
       description: 'Tous les champs ont été remis à zéro',
@@ -356,6 +373,7 @@ export default function NouveauTicket() {
         etat,
         created_by: user?.id,
         site_id: selectedSite?.id || null,
+        session_id: selectedSessionId || null,
       };
 
       const { data, error } = await supabase
