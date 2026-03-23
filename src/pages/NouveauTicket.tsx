@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useUpdateTicket } from '@/hooks/useTickets';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -59,8 +60,14 @@ export default function NouveauTicket() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check if coming from Historique with renfort mode
-  const locationState = location.state as { renfortMode?: boolean; renfortTicket?: Ticket } | null;
+  // Check if coming from Historique with renfort or edit mode
+  const locationState = location.state as { 
+    renfortMode?: boolean; renfortTicket?: Ticket;
+    editMode?: boolean; editTicket?: Ticket;
+  } | null;
+
+  const isEditMode = locationState?.editMode || false;
+  const editTicketData = locationState?.editTicket || null;
 
   // Step state - start at moyens if coming from renfort
   const [currentStep, setCurrentStep] = useState<StepId>(
@@ -69,26 +76,26 @@ export default function NouveauTicket() {
 
   // Form state
   const [dateIntervention, setDateIntervention] = useState(
-    new Date().toISOString().slice(0, 16)
+    editTicketData?.date_intervention?.slice(0, 16) || new Date().toISOString().slice(0, 16)
   );
-  const [origineId, setOrigineId] = useState('');
-  const [communeId, setCommuneId] = useState('');
-  const [typeLieuId, setTypeLieuId] = useState('');
-  const [numVoie, setNumVoie] = useState('');
-  const [typeVoieId, setTypeVoieId] = useState('');
-  const [nomVoie, setNomVoie] = useState('');
-  const [complementAdresse, setComplementAdresse] = useState('');
-  const [categorieId, setCategorieId] = useState('');
-  const [natureId, setNatureId] = useState('');
-  const [complementNature, setComplementNature] = useState('');
-  const [appelant, setAppelant] = useState('');
-  const [victime, setVictime] = useState('');
-  const [rensCompl, setRensCompl] = useState('');
-  const [coordonnees, setCoordonnees] = useState('');
-  const [ptsEauIndispo, setPtsEauIndispo] = useState('');
-  const [transit, setTransit] = useState('');
-  const [talkgroup, setTalkgroup] = useState('');
-  const [renfort, setRenfort] = useState('');
+  const [origineId, setOrigineId] = useState(editTicketData?.origine_id || '');
+  const [communeId, setCommuneId] = useState(editTicketData?.commune_id || '');
+  const [typeLieuId, setTypeLieuId] = useState(editTicketData?.type_lieu_id || '');
+  const [numVoie, setNumVoie] = useState(editTicketData?.num_voie || '');
+  const [typeVoieId, setTypeVoieId] = useState(editTicketData?.type_voie_id || '');
+  const [nomVoie, setNomVoie] = useState(editTicketData?.nom_voie || '');
+  const [complementAdresse, setComplementAdresse] = useState(editTicketData?.complement_adresse || '');
+  const [categorieId, setCategorieId] = useState(editTicketData?.categorie_id || '');
+  const [natureId, setNatureId] = useState(editTicketData?.nature_id || '');
+  const [complementNature, setComplementNature] = useState(editTicketData?.complement_nature || '');
+  const [appelant, setAppelant] = useState(editTicketData?.appelant || '');
+  const [victime, setVictime] = useState(editTicketData?.victime || '');
+  const [rensCompl, setRensCompl] = useState(editTicketData?.rens_compl || '');
+  const [coordonnees, setCoordonnees] = useState(editTicketData?.coordonnees || '');
+  const [ptsEauIndispo, setPtsEauIndispo] = useState(editTicketData?.pts_eau_indispo || '');
+  const [transit, setTransit] = useState(editTicketData?.transit || '');
+  const [talkgroup, setTalkgroup] = useState(editTicketData?.talkgroup || '');
+  const [renfort, setRenfort] = useState(editTicketData?.renfort || '');
   const [message, setMessage] = useState('');
   const [selectedSite, setSelectedSite] = useState<SelectedSite | null>(null);
 
@@ -110,7 +117,7 @@ export default function NouveauTicket() {
   const [vehiculeSelectOpen, setVehiculeSelectOpen] = useState(false);
 
   // Session filter state
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(editTicketData?.session_id || null);
 
   // Drag state
   const [activeDragItem, setActiveDragItem] = useState<PersonnelDisponible | null>(null);
@@ -139,7 +146,8 @@ export default function NouveauTicket() {
   // Affectation statistics
   const { personnelStats } = useAffectationStats(selectedSessionId);
 
-  // Check if mode renfort (either from origin dropdown or direct from Historique)
+  // Update ticket mutation (edit mode)
+  const updateTicketMutation = useUpdateTicket();
   const isRenfortMode = useMemo(() => {
     if (isDirectRenfortMode) return true;
     const selectedOrigine = origines.find((o) => o.id === origineId);
@@ -451,7 +459,59 @@ export default function NouveauTicket() {
   });
 
   const isLastStep = currentStep === 'moyens';
-  const isPending = createTicket.isPending || addRenfortToTicket.isPending;
+  const isPending = createTicket.isPending || addRenfortToTicket.isPending || updateTicketMutation.isPending;
+
+  // Handle update ticket (edit mode)
+  const handleUpdateTicket = (etat: 'brouillon' | 'valide') => {
+    if (!editTicketData) return;
+    const moyens = buildMoyens();
+    updateTicketMutation.mutate(
+      {
+        id: editTicketData.id,
+        data: {
+          date_intervention: dateIntervention,
+          origine_id: origineId || null,
+          commune_id: communeId || null,
+          type_lieu_id: typeLieuId || null,
+          num_voie: numVoie || null,
+          type_voie_id: typeVoieId || null,
+          nom_voie: nomVoie || null,
+          complement_adresse: complementAdresse || null,
+          categorie_id: categorieId || null,
+          nature_id: natureId || null,
+          complement_nature: complementNature || null,
+          appelant: appelant || null,
+          victime: victime || null,
+          rens_compl: rensCompl || null,
+          coordonnees: coordonnees || null,
+          pts_eau_indispo: ptsEauIndispo || null,
+          transit: transit || null,
+          talkgroup: talkgroup || null,
+          renfort: renfort || null,
+          moyens: moyens,
+          etat,
+          site_id: selectedSite?.id || null,
+          session_id: selectedSessionId || null,
+        },
+      },
+      {
+        onSuccess: (data) => {
+          toast({
+            title: 'Ticket modifié',
+            description: `Ticket ${data.num_inter} mis à jour avec succès`,
+          });
+          navigate('/historique');
+        },
+        onError: (error) => {
+          toast({
+            title: 'Erreur',
+            description: error.message,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   return (
     <AppLayout>
@@ -464,6 +524,11 @@ export default function NouveauTicket() {
                   <>
                     <AlertCircle className="w-6 h-6 text-orange-500" />
                     Demande de Renfort
+                  </>
+                ) : isEditMode ? (
+                  <>
+                    <Flame className="w-6 h-6 text-primary" />
+                    Modifier le Ticket {editTicketData?.num_inter}
                   </>
                 ) : (
                   <>
@@ -609,6 +674,32 @@ export default function NouveauTicket() {
                       )}
                       Ajouter le renfort
                     </Button>
+                  ) : isEditMode ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleUpdateTicket('brouillon')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Enregistrer brouillon
+                      </Button>
+                      <Button
+                        onClick={() => handleUpdateTicket('valide')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="w-4 h-4 mr-2" />
+                        )}
+                        Valider les modifications
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <Button
