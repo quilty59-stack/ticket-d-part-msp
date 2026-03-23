@@ -117,7 +117,7 @@ export default function NouveauTicket() {
   const [vehiculeSelectOpen, setVehiculeSelectOpen] = useState(false);
 
   // Session filter state
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(editTicketData?.session_id || null);
 
   // Drag state
   const [activeDragItem, setActiveDragItem] = useState<PersonnelDisponible | null>(null);
