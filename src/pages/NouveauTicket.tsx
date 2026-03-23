@@ -60,8 +60,14 @@ export default function NouveauTicket() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check if coming from Historique with renfort mode
-  const locationState = location.state as { renfortMode?: boolean; renfortTicket?: Ticket } | null;
+  // Check if coming from Historique with renfort or edit mode
+  const locationState = location.state as { 
+    renfortMode?: boolean; renfortTicket?: Ticket;
+    editMode?: boolean; editTicket?: Ticket;
+  } | null;
+
+  const isEditMode = locationState?.editMode || false;
+  const editTicketData = locationState?.editTicket || null;
 
   // Step state - start at moyens if coming from renfort
   const [currentStep, setCurrentStep] = useState<StepId>(
