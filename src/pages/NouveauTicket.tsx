@@ -459,7 +459,59 @@ export default function NouveauTicket() {
   });
 
   const isLastStep = currentStep === 'moyens';
-  const isPending = createTicket.isPending || addRenfortToTicket.isPending;
+  const isPending = createTicket.isPending || addRenfortToTicket.isPending || updateTicketMutation.isPending;
+
+  // Handle update ticket (edit mode)
+  const handleUpdateTicket = (etat: 'brouillon' | 'valide') => {
+    if (!editTicketData) return;
+    const moyens = buildMoyens();
+    updateTicketMutation.mutate(
+      {
+        id: editTicketData.id,
+        data: {
+          date_intervention: dateIntervention,
+          origine_id: origineId || null,
+          commune_id: communeId || null,
+          type_lieu_id: typeLieuId || null,
+          num_voie: numVoie || null,
+          type_voie_id: typeVoieId || null,
+          nom_voie: nomVoie || null,
+          complement_adresse: complementAdresse || null,
+          categorie_id: categorieId || null,
+          nature_id: natureId || null,
+          complement_nature: complementNature || null,
+          appelant: appelant || null,
+          victime: victime || null,
+          rens_compl: rensCompl || null,
+          coordonnees: coordonnees || null,
+          pts_eau_indispo: ptsEauIndispo || null,
+          transit: transit || null,
+          talkgroup: talkgroup || null,
+          renfort: renfort || null,
+          moyens: moyens,
+          etat,
+          site_id: selectedSite?.id || null,
+          session_id: selectedSessionId || null,
+        },
+      },
+      {
+        onSuccess: (data) => {
+          toast({
+            title: 'Ticket modifié',
+            description: `Ticket ${data.num_inter} mis à jour avec succès`,
+          });
+          navigate('/historique');
+        },
+        onError: (error) => {
+          toast({
+            title: 'Erreur',
+            description: error.message,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
 
   return (
     <AppLayout>
