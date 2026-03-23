@@ -146,7 +146,8 @@ export default function NouveauTicket() {
   // Affectation statistics
   const { personnelStats } = useAffectationStats(selectedSessionId);
 
-  // Check if mode renfort (either from origin dropdown or direct from Historique)
+  // Update ticket mutation (edit mode)
+  const updateTicketMutation = useUpdateTicket();
   const isRenfortMode = useMemo(() => {
     if (isDirectRenfortMode) return true;
     const selectedOrigine = origines.find((o) => o.id === origineId);
