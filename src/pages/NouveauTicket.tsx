@@ -536,11 +536,6 @@ export default function NouveauTicket() {
                     Nouveau Ticket de Départ
                   </>
                 )}
-                  <>
-                    <Flame className="w-6 h-6 text-primary" />
-                    Nouveau Ticket de Départ
-                  </>
-                )}
               </h1>
               <Button
                 variant="outline"
