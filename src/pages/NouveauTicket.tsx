@@ -674,6 +674,32 @@ export default function NouveauTicket() {
                       )}
                       Ajouter le renfort
                     </Button>
+                  ) : isEditMode ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleUpdateTicket('brouillon')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Enregistrer brouillon
+                      </Button>
+                      <Button
+                        onClick={() => handleUpdateTicket('valide')}
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <FileText className="w-4 h-4 mr-2" />
+                        )}
+                        Valider les modifications
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <Button
