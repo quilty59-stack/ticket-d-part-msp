@@ -525,7 +525,17 @@ export default function NouveauTicket() {
                     <AlertCircle className="w-6 h-6 text-orange-500" />
                     Demande de Renfort
                   </>
+                ) : isEditMode ? (
+                  <>
+                    <Flame className="w-6 h-6 text-primary" />
+                    Modifier le Ticket {editTicketData?.num_inter}
+                  </>
                 ) : (
+                  <>
+                    <Flame className="w-6 h-6 text-primary" />
+                    Nouveau Ticket de Départ
+                  </>
+                )}
                   <>
                     <Flame className="w-6 h-6 text-primary" />
                     Nouveau Ticket de Départ
