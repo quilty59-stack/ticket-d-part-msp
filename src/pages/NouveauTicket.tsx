@@ -76,26 +76,26 @@ export default function NouveauTicket() {
 
   // Form state
   const [dateIntervention, setDateIntervention] = useState(
-    new Date().toISOString().slice(0, 16)
+    editTicketData?.date_intervention?.slice(0, 16) || new Date().toISOString().slice(0, 16)
   );
-  const [origineId, setOrigineId] = useState('');
-  const [communeId, setCommuneId] = useState('');
-  const [typeLieuId, setTypeLieuId] = useState('');
-  const [numVoie, setNumVoie] = useState('');
-  const [typeVoieId, setTypeVoieId] = useState('');
-  const [nomVoie, setNomVoie] = useState('');
-  const [complementAdresse, setComplementAdresse] = useState('');
-  const [categorieId, setCategorieId] = useState('');
-  const [natureId, setNatureId] = useState('');
-  const [complementNature, setComplementNature] = useState('');
-  const [appelant, setAppelant] = useState('');
-  const [victime, setVictime] = useState('');
-  const [rensCompl, setRensCompl] = useState('');
-  const [coordonnees, setCoordonnees] = useState('');
-  const [ptsEauIndispo, setPtsEauIndispo] = useState('');
-  const [transit, setTransit] = useState('');
-  const [talkgroup, setTalkgroup] = useState('');
-  const [renfort, setRenfort] = useState('');
+  const [origineId, setOrigineId] = useState(editTicketData?.origine_id || '');
+  const [communeId, setCommuneId] = useState(editTicketData?.commune_id || '');
+  const [typeLieuId, setTypeLieuId] = useState(editTicketData?.type_lieu_id || '');
+  const [numVoie, setNumVoie] = useState(editTicketData?.num_voie || '');
+  const [typeVoieId, setTypeVoieId] = useState(editTicketData?.type_voie_id || '');
+  const [nomVoie, setNomVoie] = useState(editTicketData?.nom_voie || '');
+  const [complementAdresse, setComplementAdresse] = useState(editTicketData?.complement_adresse || '');
+  const [categorieId, setCategorieId] = useState(editTicketData?.categorie_id || '');
+  const [natureId, setNatureId] = useState(editTicketData?.nature_id || '');
+  const [complementNature, setComplementNature] = useState(editTicketData?.complement_nature || '');
+  const [appelant, setAppelant] = useState(editTicketData?.appelant || '');
+  const [victime, setVictime] = useState(editTicketData?.victime || '');
+  const [rensCompl, setRensCompl] = useState(editTicketData?.rens_compl || '');
+  const [coordonnees, setCoordonnees] = useState(editTicketData?.coordonnees || '');
+  const [ptsEauIndispo, setPtsEauIndispo] = useState(editTicketData?.pts_eau_indispo || '');
+  const [transit, setTransit] = useState(editTicketData?.transit || '');
+  const [talkgroup, setTalkgroup] = useState(editTicketData?.talkgroup || '');
+  const [renfort, setRenfort] = useState(editTicketData?.renfort || '');
   const [message, setMessage] = useState('');
   const [selectedSite, setSelectedSite] = useState<SelectedSite | null>(null);
 
