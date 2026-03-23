@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useTickets } from '@/hooks/useTickets';
+import { useTickets, useDeleteTicket } from '@/hooks/useTickets';
 import { useActiveSessionsFormation } from '@/hooks/useSessionsFormation';
 import { useProfilesByUserIds } from '@/hooks/useProfiles';
+import { useToast } from '@/hooks/use-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { CategoryBadge } from '@/components/ticket/CategoryBadge';
 import { TicketIntervention } from '@/components/ticket/TicketIntervention';
 import {
@@ -38,14 +49,18 @@ import {
   Filter,
   User,
   GraduationCap,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import type { Ticket, MoyenAffecte } from '@/lib/supabase-types';
 
 export default function Historique() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [printTicket, setPrintTicket] = useState<Ticket | null>(null);
   const [sessionFilter, setSessionFilter] = useState<string>('all');
+  const [deleteTicket, setDeleteTicket] = useState<Ticket | null>(null);
 
   // Fetch sessions for filter
   const { data: sessions = [] } = useActiveSessionsFormation();
@@ -54,6 +69,9 @@ export default function Historique() {
   const { data: tickets = [], isLoading } = useTickets(
     sessionFilter === 'all' ? null : sessionFilter
   );
+
+  // Delete mutation
+  const deleteTicketMutation = useDeleteTicket();
 
   // Get unique user IDs from tickets to fetch profiles
   const userIds = useMemo(() => {
@@ -71,9 +89,39 @@ export default function Historique() {
     setPrintTicket(ticket);
   };
 
+  // Edit handler - navigate to nouveau ticket with edit mode
+  const handleEdit = (ticket: Ticket) => {
+    navigate('/ticket/nouveau', {
+      state: {
+        editMode: true,
+        editTicket: ticket,
+      },
+    });
+  };
+
+  // Delete confirmation handler
+  const handleConfirmDelete = () => {
+    if (!deleteTicket) return;
+    deleteTicketMutation.mutate(deleteTicket.id, {
+      onSuccess: () => {
+        toast({
+          title: 'Ticket supprimé',
+          description: `Le ticket ${deleteTicket.num_inter} a été supprimé`,
+        });
+        setDeleteTicket(null);
+      },
+      onError: (error) => {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
+        });
+      },
+    });
+  };
+
   // Renfort handler - navigate to nouveau ticket with renfort mode
   const handleRenfort = (ticket: Ticket) => {
-    // Navigate to the new ticket page with renfort mode and pre-selected ticket
     navigate('/ticket/nouveau', {
       state: {
         renfortMode: true,
@@ -227,10 +275,27 @@ export default function Historique() {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                onClick={() => handleEdit(ticket)}
+                                title="Modifier"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 onClick={() => handlePrint(ticket)}
                                 title="Imprimer"
                               >
                                 <Printer className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setDeleteTicket(ticket)}
+                                title="Supprimer"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                               <Button
                                 size="sm"
@@ -255,7 +320,7 @@ export default function Historique() {
         </Card>
       </div>
 
-      {/* View Dialog - use TicketIntervention for viewing */}
+      {/* View Dialog */}
       <TicketIntervention
         ticket={selectedTicket}
         open={!!selectedTicket}
@@ -268,6 +333,33 @@ export default function Historique() {
         open={!!printTicket}
         onOpenChange={(open) => !open && setPrintTicket(null)}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTicket} onOpenChange={(open) => !open && setDeleteTicket(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le ticket ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point de supprimer le ticket{' '}
+              <strong>{deleteTicket?.num_inter}</strong>. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteTicketMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
